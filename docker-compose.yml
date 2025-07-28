@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mrcrm-app
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+    ports:
+      - "8080:8000"
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_DATABASE=mrcrm
+      - DB_USERNAME=mrcrm
+      - DB_PASSWORD=mrcrm
+    networks:
+      - mrcrm-net
+
+  db:
+    image: mariadb:10.11
+    container_name: mrcrm-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: mrcrm
+      MYSQL_USER: mrcrm
+      MYSQL_PASSWORD: mrcrm
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - mrcrm-net
+
+  adminer:
+    image: adminer
+    container_name: mrcrm-adminer
+    ports:
+      - "8081:8080"
+    depends_on:
+      - db
+    networks:
+      - mrcrm-net
+
+volumes:
+  dbdata:
+
+networks:
+  mrcrm-net:
+    driver: bridge 
