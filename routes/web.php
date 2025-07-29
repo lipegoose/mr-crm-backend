@@ -14,14 +14,14 @@ Route::get('/', function () {
 
 // Rotas de autenticação
 Route::group(['prefix' => 'auth'], function () {
-    Route::post('login', [AuthController::class, 'login']);
-    Route::post('register', [AuthController::class, 'register']);
+    Route::post('login', 'AuthController@login');
+    Route::post('register', 'AuthController@register');
     
     // Rotas protegidas
     Route::group(['middleware' => 'auth:api'], function () {
-        Route::post('logout', [AuthController::class, 'logout']);
-        Route::post('refresh', [AuthController::class, 'refresh']);
-        Route::get('me', [AuthController::class, 'me']);
+        Route::post('logout', 'AuthController@logout');
+        Route::post('refresh', 'AuthController@refresh');
+        Route::get('me', 'AuthController@me');
     });
 });
 
