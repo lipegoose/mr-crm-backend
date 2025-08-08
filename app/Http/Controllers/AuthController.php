@@ -23,6 +23,11 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
             'password' => 'required|string|min:6',
+        ], [
+            'email.required' => 'O campo e-mail é obrigatório',
+            'email.email' => 'Por favor, informe um e-mail válido',
+            'password.required' => 'O campo senha é obrigatório',
+            'password.min' => 'A senha deve ter pelo menos 6 caracteres',
         ]);
 
         if ($validator->fails()) {
@@ -68,6 +73,15 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6|confirmed',
+        ], [
+            'name.required' => 'O campo nome é obrigatório',
+            'name.max' => 'O nome não pode ter mais de 255 caracteres',
+            'email.required' => 'O campo e-mail é obrigatório',
+            'email.email' => 'Por favor, informe um e-mail válido',
+            'email.unique' => 'Este e-mail já está sendo utilizado',
+            'password.required' => 'O campo senha é obrigatório',
+            'password.min' => 'A senha deve ter pelo menos 6 caracteres',
+            'password.confirmed' => 'A confirmação de senha não corresponde',
         ]);
 
         if ($validator->fails()) {
