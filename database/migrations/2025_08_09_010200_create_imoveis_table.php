@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('codigo_referencia', 50)->unique()->comment('Código único para referência do imóvel');
 
             // Proprietário e relacionamentos
-            $table->foreignId('proprietario_id')->constrained('users')->restrictOnDelete();
+            $table->foreignId('proprietario_id')->constrained('clientes')->restrictOnDelete();
             $table->foreignId('corretor_id')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('condominio_id')->nullable()->constrained('condominios')->nullOnDelete();
 
@@ -93,7 +93,7 @@ return new class extends Migration
             $table->decimal('longitude', 11, 8)->nullable();
 
             // Status e publicação
-            $table->enum('status', ['ATIVO', 'INATIVO', 'VENDIDO', 'ALUGADO', 'RESERVADO', 'EM_NEGOCIACAO'])->default('ATIVO');
+            $table->enum('status', ['ATIVO', 'INATIVO', 'VENDIDO', 'ALUGADO', 'RESERVADO', 'EM_NEGOCIACAO', 'RASCUNHO'])->default('RASCUNHO');
             $table->boolean('publicar_site')->default(true);
             $table->boolean('destaque_site')->default(false);
             $table->date('data_publicacao')->nullable();

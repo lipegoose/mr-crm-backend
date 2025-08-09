@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 
 class CaracteristicasCondominiosSeeder extends Seeder
 {
@@ -13,7 +14,7 @@ class CaracteristicasCondominiosSeeder extends Seeder
             'Academia','Área de festas','Área gourmet','Bicicletário','Brinquedoteca','Campo de futebol','Churrasqueira coletiva','Cinema','Circuito de segurança','Elevador','Espaço coworking','Espaço gourmet','Espaço pet','Espaço zen','Estacionamento para visitantes','Fitness','Gerador','Guarita','Jardim','Lavanderia coletiva','Piscina adulto','Piscina infantil','Playground','Portaria 24h','Portaria eletrônica','Porteiro eletrônico','Quadra de esportes','Quadra de tênis','Quadra poliesportiva','Salão de festas','Salão de jogos','Sauna','Segurança 24h','Spa','Vagas para visitantes','Wi-fi nas áreas comuns'
         ];
 
-        $now = now();
+        $now = Carbon::now();
         $adminId = 1; // já existe
 
         // Normalização leve (trim) e deduplicação mantendo rótulo original

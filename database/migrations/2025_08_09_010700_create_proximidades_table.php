@@ -13,6 +13,7 @@ return new class extends Migration
             $table->string('nome', 100);
             $table->boolean('sistema')->default(true)->comment('True para proximidades pré-definidas pelo sistema');
             $table->timestamps();
+            $table->softDeletes();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
 

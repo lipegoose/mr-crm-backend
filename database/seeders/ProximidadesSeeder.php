@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 
 class ProximidadesSeeder extends Seeder
 {
@@ -13,7 +14,7 @@ class ProximidadesSeeder extends Seeder
             'Academia','Aeroporto','Banco','Biblioteca','Centro comercial','Cinema','Escola','Estação de metrô','Estação de trem','Farmácia','Hospital','Padaria','Parque','Ponto de ônibus','Posto de gasolina','Praia','Restaurante','Shopping','Supermercado','Teatro','Universidade'
         ];
 
-        $now = now();
+        $now = Carbon::now();
         $adminId = 1; // já existe
 
         // Normalização leve (trim) e deduplicação mantendo rótulo original

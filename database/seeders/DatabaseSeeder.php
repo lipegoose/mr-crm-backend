@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             CaracteristicasImoveisSeeder::class,
             CaracteristicasCondominiosSeeder::class,
             ProximidadesSeeder::class,
+            ClienteExemploSeeder::class,
             CondominioExemploSeeder::class,
             // TiposSubtiposSeeder é referência e não precisa ser executado
         ]);

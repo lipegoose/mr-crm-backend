@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 
 class CondominioExemploSeeder extends Seeder
 {
@@ -19,7 +20,7 @@ class CondominioExemploSeeder extends Seeder
             return;
         }
 
-        $now = now();
+        $now = Carbon::now();
         $adminId = 1; // admin já existe
 
         $condominioId = DB::table('condominios')->insertGetId([

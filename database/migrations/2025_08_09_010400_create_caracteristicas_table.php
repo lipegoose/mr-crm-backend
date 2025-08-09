@@ -14,6 +14,7 @@ return new class extends Migration
             $table->enum('escopo', ['IMOVEL', 'CONDOMINIO'])->comment('Define se a característica é do imóvel ou do condomínio');
             $table->boolean('sistema')->default(true)->comment('True para características pré-definidas pelo sistema');
             $table->timestamps();
+            $table->softDeletes();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
 

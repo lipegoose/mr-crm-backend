@@ -14,6 +14,9 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         \App\Console\Commands\CreateAdminUser::class,
+        \App\Console\Commands\TestarModelos::class,
+        \App\Console\Commands\VerificarEstrutura::class,
+        \App\Console\Commands\MostrarEstrutura::class,
     ];
 
     /**

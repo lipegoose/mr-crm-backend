@@ -165,6 +165,12 @@ class Imovel extends Model
                 $imovel->codigo_referencia = $imovel->gerarCodigoReferencia();
             }
             
+            // Definir status padrão como RASCUNHO se não for especificado
+            // Isso permite o cadastro em etapas via wizard
+            if (empty($imovel->status)) {
+                $imovel->status = 'RASCUNHO';
+            }
+            
             // Definir usuário que está criando
             if (empty($imovel->created_by) && Auth::check()) {
                 $imovel->created_by = Auth::id();
@@ -416,7 +422,7 @@ class Imovel extends Model
      */
     public function proprietario()
     {
-        return $this->belongsTo(User::class, 'proprietario_id');
+        return $this->belongsTo(Cliente::class, 'proprietario_id');
     }
     
     /**
@@ -521,6 +527,22 @@ class Imovel extends Model
     public function scopeAtivos($query)
     {
         return $query->where('status', 'ATIVO');
+    }
+    
+    /**
+     * Escopo: Imóveis em rascunho (cadastros incompletos).
+     */
+    public function scopeRascunhos($query)
+    {
+        return $query->where('status', 'RASCUNHO');
+    }
+    
+    /**
+     * Escopo: Imóveis por status.
+     */
+    public function scopePorStatus($query, $status)
+    {
+        return $query->where('status', $status);
     }
     
     /**
