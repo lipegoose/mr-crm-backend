@@ -14,6 +14,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // $this->call('UsersTableSeeder');
+        $this->call([
+            CaracteristicasImoveisSeeder::class,
+            CaracteristicasCondominiosSeeder::class,
+            ProximidadesSeeder::class,
+            CondominioExemploSeeder::class,
+            // TiposSubtiposSeeder é referência e não precisa ser executado
+        ]);
     }
 }
