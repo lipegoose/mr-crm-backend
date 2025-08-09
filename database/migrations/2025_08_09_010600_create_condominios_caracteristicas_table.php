@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
 
             // Restrições e índices
-            $table->unique(['condominio_id', 'caracteristica_id']);
+            $table->unique(['condominio_id', 'caracteristica_id'], 'cond_carac_unique');
             $table->index('caracteristica_id');
         });
     }

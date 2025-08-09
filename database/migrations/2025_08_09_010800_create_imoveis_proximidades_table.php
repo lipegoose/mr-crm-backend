@@ -19,7 +19,7 @@ return new class extends Migration
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
 
             // Restrições e índices
-            $table->unique(['imovel_id', 'proximidade_id']);
+            $table->unique(['imovel_id', 'proximidade_id'], 'imov_prox_unique');
             $table->index('proximidade_id');
             $table->index('distancia_metros');
         });
