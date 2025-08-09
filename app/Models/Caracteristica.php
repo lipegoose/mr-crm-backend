@@ -118,4 +118,34 @@ class Caracteristica extends Model
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
+    
+    /**
+     * Verifica se a característica está em uso por algum imóvel.
+     *
+     * @return bool
+     */
+    public function estaEmUsoEmImoveis()
+    {
+        return $this->imoveis()->count() > 0;
+    }
+    
+    /**
+     * Verifica se a característica está em uso por algum condomínio.
+     *
+     * @return bool
+     */
+    public function estaEmUsoEmCondominios()
+    {
+        return $this->condominios()->count() > 0;
+    }
+    
+    /**
+     * Verifica se a característica está em uso em qualquer entidade.
+     *
+     * @return bool
+     */
+    public function estaEmUso()
+    {
+        return $this->estaEmUsoEmImoveis() || $this->estaEmUsoEmCondominios();
+    }
 }

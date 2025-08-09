@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class Proximidade extends Model
 {
@@ -99,5 +100,31 @@ class Proximidade extends Model
     public function atualizadoPor()
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+    
+    /**
+     * Verifica se a proximidade está em uso por algum imóvel.
+     *
+     * @return bool
+     */
+    public function estaEmUso()
+    {
+        return $this->imoveis()->count() > 0;
+    }
+    
+    /**
+     * Retorna as proximidades ordenadas por popularidade (mais usadas).
+     *
+     * @param \Illuminate\Database\Eloquent\Builder $query
+     * @param int $limit Limite de resultados
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopePorPopularidade($query, $limit = 10)
+    {
+        return $query->select('proximidades.*', DB::raw('COUNT(imoveis_proximidades.id) as total_usos'))
+            ->leftJoin('imoveis_proximidades', 'proximidades.id', '=', 'imoveis_proximidades.proximidade_id')
+            ->groupBy('proximidades.id')
+            ->orderBy('total_usos', 'desc')
+            ->limit($limit);
     }
 }
