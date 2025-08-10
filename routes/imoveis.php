@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ImovelController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,21 +13,25 @@ use App\Http\Controllers\ImovelController;
 */
 
 // Grupo de rotas protegidas por autenticação
-Route::group(['middleware' => 'auth'], function () {
+Route::group(['prefix' => 'api', 'middleware' => 'auth'], function () {
     // Rotas CRUD básicas
-    Route::get('/imoveis', [ImovelController::class, 'index']);
-    Route::get('/imoveis/{id}', [ImovelController::class, 'show']);
-    Route::post('/imoveis/iniciar', [ImovelController::class, 'iniciar']);
-    Route::put('/imoveis/{id}', [ImovelController::class, 'update']);
-    Route::delete('/imoveis/{id}', [ImovelController::class, 'destroy']);
+    Route::get('imoveis', 'ImovelController@index');
+    
+    // Rota para busca avançada (deve vir antes de imoveis/{id} para evitar conflitos)
+    Route::get('imoveis/search', 'ImovelController@search');
+    
+    Route::get('imoveis/{id}', 'ImovelController@show');
+    Route::post('imoveis/iniciar', 'ImovelController@iniciar');
+    Route::put('imoveis/{id}', 'ImovelController@update');
+    Route::delete('imoveis/{id}', 'ImovelController@destroy');
     
     // Rotas para código de referência
-    Route::get('/imoveis/codigo-referencia/{codigo}/{id?}', [ImovelController::class, 'validarCodigoReferencia']);
-    Route::put('/imoveis/{id}/codigo-referencia', [ImovelController::class, 'atualizarCodigoReferencia']);
+    Route::get('imoveis/codigo-referencia/{codigo}/{id?}', 'ImovelController@validarCodigoReferencia');
+    Route::put('imoveis/{id}/codigo-referencia', 'ImovelController@atualizarCodigoReferencia');
     
     // Rotas para gerenciamento de imagens
-    Route::post('/imoveis/{id}/imagens', [ImovelController::class, 'uploadImagem']);
-    Route::put('/imoveis/{id}/imagens/reordenar', [ImovelController::class, 'reordenarImagens']);
-    Route::put('/imoveis/{id}/imagens/{imagemId}/principal', [ImovelController::class, 'definirImagemPrincipal']);
-    Route::delete('/imoveis/{id}/imagens/{imagemId}', [ImovelController::class, 'excluirImagem']);
+    Route::post('imoveis/{id}/imagens', 'ImovelController@uploadImagem');
+    Route::put('imoveis/{id}/imagens/reordenar', 'ImovelController@reordenarImagens');
+    Route::put('imoveis/{id}/imagens/{imagemId}/principal', 'ImovelController@definirImagemPrincipal');
+    Route::delete('imoveis/{id}/imagens/{imagemId}', 'ImovelController@excluirImagem');
 });

@@ -3,17 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ImovelRequest;
+use App\Http\Requests\ImovelSearchRequest;
 use App\Http\Resources\ImovelResource;
 use App\Http\Resources\ImovelCollection;
 use App\Models\Imovel;
 use App\Models\ImovelDetalhe;
 use App\Models\ImovelImagem;
 use App\Models\ImovelPrecoHistorico;
+use App\Models\Caracteristica;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
 
@@ -642,5 +645,229 @@ class ImovelController extends Controller
         ]);
         
         $historico->save();
+    }
+    
+    /**
+     * Busca avançada de imóveis com múltiplos filtros.
+     *
+     * @param  \App\Http\Requests\ImovelSearchRequest  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function search(Request $request)
+    {
+        // Validar a requisição usando a classe ImovelSearchRequest
+        $searchRequest = new ImovelSearchRequest();
+        $searchRequest->replace($request->all());
+        $searchRequest->validate();
+        
+        try {
+            // Definir chave de cache baseada nos parâmetros da requisição
+            $cacheKey = 'imoveis_search_' . md5(json_encode($request->all()));
+            $cacheTtl = 30; // 30 minutos
+            
+            // Verificar se já existe no cache (apenas para consultas frequentes)
+            if (!$request->has('requisitosImovel') && !$request->has('requisitosCondominio') && Cache::has($cacheKey)) {
+                return Cache::get($cacheKey);
+            }
+            
+            // Iniciar a query base
+            $query = Imovel::query()
+                ->select('imoveis.*')
+                ->where('imoveis.status', 'ATIVO')
+                ->where('imoveis.publicar_site', true);
+            
+            // Aplicar filtro de tipo/subtipo (sem parsing, usar o valor exato)
+            if ($request->filled('tipoSubtipo')) {
+                $query->where('imoveis.tipo', $request->tipoSubtipo);
+            }
+            
+            // Aplicar filtro de transação (VENDA/ALUGUEL)
+            if ($request->filled('transacao')) {
+                if ($request->transacao === 'VENDA') {
+                    $query->whereNotNull('imoveis.preco_venda');
+                } elseif ($request->transacao === 'ALUGUEL') {
+                    $query->whereNotNull('imoveis.preco_aluguel');
+                }
+            }
+            
+            // Aplicar filtro de UF
+            if ($request->filled('uf')) {
+                $query->where('imoveis.uf', $request->uf);
+            }
+            
+            // Aplicar filtro de cidade
+            if ($request->filled('cidade')) {
+                $query->where('imoveis.cidade', $request->cidade);
+            }
+            
+            // Aplicar filtro de bairros (múltiplos)
+            if ($request->filled('bairros') && is_array($request->bairros)) {
+                $query->whereIn('imoveis.bairro', $request->bairros);
+            }
+            
+            // Aplicar filtro de perfil do imóvel
+            if ($request->filled('perfilImovel')) {
+                $query->where('imoveis.perfil', $request->perfilImovel);
+            }
+            
+            // Aplicar filtros de características numéricas (mínimos)
+            if ($request->filled('dormitorios')) {
+                $query->where('imoveis.dormitorios', '>=', $request->dormitorios);
+            }
+            
+            if ($request->filled('suites')) {
+                $query->where('imoveis.suites', '>=', $request->suites);
+            }
+            
+            if ($request->filled('garagens')) {
+                $query->where('imoveis.garagens', '>=', $request->garagens);
+            }
+            
+            // Aplicar filtro de situação (múltiplos)
+            if ($request->filled('situacao') && is_array($request->situacao)) {
+                $query->whereIn('imoveis.situacao', $request->situacao);
+            }
+            
+            // Aplicar filtros de faixa de preço
+            if ($request->filled('precoMin') || $request->filled('precoMax')) {
+                // Determinar qual campo de preço usar com base na transação
+                $campoPreco = $request->transacao === 'ALUGUEL' ? 'preco_aluguel' : 'preco_venda';
+                
+                if ($request->filled('precoMin')) {
+                    $query->where("imoveis.{$campoPreco}", '>=', $request->precoMin);
+                }
+                
+                if ($request->filled('precoMax')) {
+                    $query->where("imoveis.{$campoPreco}", '<=', $request->precoMax);
+                }
+            }
+            
+            // Aplicar filtros de faixa de área
+            if ($request->filled('areaMin')) {
+                $query->where('imoveis.area_total', '>=', $request->areaMin);
+            }
+            
+            if ($request->filled('areaMax')) {
+                $query->where('imoveis.area_total', '<=', $request->areaMax);
+            }
+            
+            // Aplicar filtros booleanos
+            if ($request->filled('mobiliado')) {
+                $query->where('imoveis.mobiliado', $request->mobiliado);
+            }
+            
+            if ($request->filled('aceitaPermuta')) {
+                $query->where('imoveis.aceita_permuta', $request->aceitaPermuta);
+            }
+            
+            if ($request->filled('aceitaFinanciamento')) {
+                $query->where('imoveis.aceita_financiamento', $request->aceitaFinanciamento);
+            }
+            
+            // Aplicar filtro de características do imóvel (N:N)
+            if ($request->filled('requisitosImovel') && is_array($request->requisitosImovel) && count($request->requisitosImovel) > 0) {
+                foreach ($request->requisitosImovel as $caracteristicaId) {
+                    $query->whereExists(function ($subquery) use ($caracteristicaId) {
+                        $subquery->select(DB::raw(1))
+                            ->from('imoveis_caracteristicas')
+                            ->whereColumn('imoveis_caracteristicas.imovel_id', 'imoveis.id')
+                            ->where('imoveis_caracteristicas.caracteristica_id', $caracteristicaId);
+                    });
+                }
+            }
+            
+            // Aplicar filtro de características do condomínio (N:N)
+            if ($request->filled('requisitosCondominio') && is_array($request->requisitosCondominio) && count($request->requisitosCondominio) > 0) {
+                // Primeiro, garantir que o imóvel tenha um condomínio
+                $query->whereNotNull('imoveis.condominio_id');
+                
+                foreach ($request->requisitosCondominio as $caracteristicaId) {
+                    $query->whereExists(function ($subquery) use ($caracteristicaId) {
+                        $subquery->select(DB::raw(1))
+                            ->from('condominios_caracteristicas')
+                            ->join('condominios', 'condominios.id', '=', 'condominios_caracteristicas.condominio_id')
+                            ->whereColumn('condominios.id', 'imoveis.condominio_id')
+                            ->where('condominios_caracteristicas.caracteristica_id', $caracteristicaId);
+                    });
+                }
+            }
+            
+            // Aplicar ordenação
+            $ordenacao = $request->input('ordenacao', 'recentes');
+            switch ($ordenacao) {
+                case 'preco_asc':
+                    // Ordenar pelo preço apropriado conforme o tipo de transação
+                    if ($request->transacao === 'ALUGUEL') {
+                        $query->orderBy('imoveis.preco_aluguel', 'asc');
+                    } else {
+                        $query->orderBy('imoveis.preco_venda', 'asc');
+                    }
+                    break;
+                    
+                case 'preco_desc':
+                    // Ordenar pelo preço apropriado conforme o tipo de transação
+                    if ($request->transacao === 'ALUGUEL') {
+                        $query->orderBy('imoveis.preco_aluguel', 'desc');
+                    } else {
+                        $query->orderBy('imoveis.preco_venda', 'desc');
+                    }
+                    break;
+                    
+                case 'area_asc':
+                    $query->orderBy('imoveis.area_total', 'asc');
+                    break;
+                    
+                case 'area_desc':
+                    $query->orderBy('imoveis.area_total', 'desc');
+                    break;
+                    
+                case 'recentes':
+                default:
+                    $query->orderBy('imoveis.created_at', 'desc');
+                    break;
+            }
+            
+            // Aplicar eager loading de relacionamentos necessários
+            $includes = [];
+            
+            // Sempre incluir a imagem principal
+            $includes[] = 'imagens';
+            
+            // Incluir outros relacionamentos se solicitado
+            if ($request->filled('include')) {
+                $requestedIncludes = explode(',', $request->include);
+                $allowedIncludes = ['detalhes', 'caracteristicas', 'condominio'];
+                
+                foreach ($requestedIncludes as $include) {
+                    if (in_array($include, $allowedIncludes)) {
+                        $includes[] = $include;
+                    }
+                }
+            }
+            
+            if (!empty($includes)) {
+                $query->with($includes);
+            }
+            
+            // Aplicar paginação
+            $perPage = $request->input('per_page', 15);
+            $imoveis = $query->paginate($perPage);
+            
+            // Criar a resposta com a coleção de imóveis
+            $response = new ImovelCollection($imoveis);
+            
+            // Armazenar no cache (apenas para consultas sem filtros de características)
+            if (!$request->has('requisitosImovel') && !$request->has('requisitosCondominio')) {
+                Cache::put($cacheKey, $response, $cacheTtl);
+            }
+            
+            return $response;
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao realizar busca de imóveis',
+                'error' => $e->getMessage(),
+                'trace' => config('app.debug') ? $e->getTraceAsString() : null
+            ], 500);
+        }
     }
 }
