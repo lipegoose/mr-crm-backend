@@ -27,6 +27,7 @@ class Imovel extends Model
      */
     protected $fillable = [
         'codigo_referencia',
+        'codigo_referencia_editado',
         'proprietario_id',
         'corretor_id',
         'condominio_id',

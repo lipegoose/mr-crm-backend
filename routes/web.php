@@ -34,3 +34,6 @@ Route::group(['middleware' => 'auth:api'], function () {
         ]);
     });
 }); 
+
+// Incluir rotas de imóveis
+require __DIR__ . '/imoveis.php';
