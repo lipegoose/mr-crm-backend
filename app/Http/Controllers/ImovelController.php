@@ -221,6 +221,136 @@ class ImovelController extends Controller
     }
 
     /**
+     * Duplica um imóvel existente, criando uma cópia com status RASCUNHO.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function duplicar($id)
+    {
+        try {
+            DB::beginTransaction();
+            
+            // Buscar imóvel original com relacionamentos
+            $imovelOriginal = Imovel::with([
+                'detalhes',
+                'caracteristicas',
+                'proximidades',
+                'imagens',
+                'videos',
+                'plantas'
+            ])->findOrFail($id);
+            
+            // Criar novo imóvel com os mesmos dados do original
+            $novoImovel = new Imovel();
+            
+            // Copiar atributos básicos do imóvel
+            $atributosParaCopiar = [
+                'tipo', 'subtipo', 'perfil', 'tipo_negocio',
+                'quartos', 'suites', 'banheiros', 'vagas',
+                'area_total', 'area_privativa', 'area_terreno', 'unidade_medida',
+                'andar', 'total_andares', 'unidades_andar', 'unidades_predio',
+                'ano_construcao', 'incorporadora', 'construtora',
+                'preco_venda', 'preco_locacao', 'preco_temporada', 'preco_condominio', 'preco_iptu',
+                'aceita_permuta', 'aceita_financiamento',
+                'uf', 'cidade', 'bairro', 'logradouro', 'numero', 'complemento', 'cep',
+                'latitude', 'longitude', 'mostrar_mapa_site',
+                'condominio_id', 'proprietario_id', 'corretor_id'
+            ];
+            
+            foreach ($atributosParaCopiar as $atributo) {
+                if (isset($imovelOriginal->$atributo)) {
+                    $novoImovel->$atributo = $imovelOriginal->$atributo;
+                }
+            }
+            
+            // Definir status como RASCUNHO e dados de auditoria
+            $novoImovel->status = 'RASCUNHO';
+            $novoImovel->created_by = Auth::id();
+            
+            // Gerar novo código de referência
+            $novoImovel->codigo_referencia = $novoImovel->gerarCodigoReferencia();
+            $novoImovel->codigo_referencia_editado = false;
+            
+            // Salvar o novo imóvel
+            $novoImovel->save();
+            
+            // Criar detalhes do imóvel
+            $detalhesOriginal = $imovelOriginal->detalhes;
+            $novosDetalhes = new ImovelDetalhe();
+            $novosDetalhes->id = $novoImovel->id;
+            
+            // Copiar atributos dos detalhes
+            if ($detalhesOriginal) {
+                $atributosDetalhesParaCopiar = [
+                    'titulo_anuncio', 'descricao', 'palavras_chave',
+                    'gerar_titulo_automatico', 'gerar_descricao_automatica',
+                    'observacoes_internas', 'tour_virtual',
+                    'seo_titulo', 'seo_descricao', 'seo_palavras_chave', 'url_amigavel',
+                    'gerar_seo_titulo_automatico', 'gerar_seo_descricao_automatica',
+                    'exclusividade', 'comissao_porcentagem', 'comissao_valor', 'anotacoes_contrato',
+                    'config_exibicao'
+                ];
+                
+                foreach ($atributosDetalhesParaCopiar as $atributo) {
+                    if (isset($detalhesOriginal->$atributo)) {
+                        $novosDetalhes->$atributo = $detalhesOriginal->$atributo;
+                    }
+                }
+            }
+            
+            $novosDetalhes->created_by = Auth::id();
+            $novosDetalhes->save();
+            
+            // Copiar características
+            if ($imovelOriginal->caracteristicas->count() > 0) {
+                $caracteristicas = [];
+                foreach ($imovelOriginal->caracteristicas as $caracteristica) {
+                    $caracteristicas[$caracteristica->id] = [
+                        'valor' => $caracteristica->pivot->valor,
+                        'created_by' => Auth::id()
+                    ];
+                }
+                $novoImovel->caracteristicas()->attach($caracteristicas);
+            }
+            
+            // Copiar proximidades
+            if ($imovelOriginal->proximidades->count() > 0) {
+                $proximidades = [];
+                foreach ($imovelOriginal->proximidades as $proximidade) {
+                    $proximidades[$proximidade->id] = [
+                        'distancia_metros' => $proximidade->pivot->distancia_metros,
+                        'distancia_texto' => $proximidade->pivot->distancia_texto,
+                        'created_by' => Auth::id()
+                    ];
+                }
+                $novoImovel->proximidades()->attach($proximidades);
+            }
+            
+            // Não copiar imagens, vídeos e plantas - o usuário deverá adicioná-los novamente
+            
+            DB::commit();
+            
+            // Carregar relacionamentos para o retorno
+            $novoImovel->load(['detalhes', 'caracteristicas', 'proximidades']);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Imóvel duplicado com sucesso',
+                'imovel' => new ImovelResource($novoImovel)
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao duplicar imóvel',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
      * Atualiza um imóvel existente.
      *
      * @param  \App\Http\Requests\ImovelRequest  $request

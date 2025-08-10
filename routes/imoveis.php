@@ -22,6 +22,7 @@ Route::group(['prefix' => 'api', 'middleware' => 'auth'], function () {
     
     Route::get('imoveis/{id}', 'ImovelController@show');
     Route::post('imoveis/iniciar', 'ImovelController@iniciar');
+    Route::post('imoveis/{id}/duplicar', 'ImovelController@duplicar');
     Route::put('imoveis/{id}', 'ImovelController@update');
     Route::delete('imoveis/{id}', 'ImovelController@destroy');
     
@@ -34,4 +35,77 @@ Route::group(['prefix' => 'api', 'middleware' => 'auth'], function () {
     Route::put('imoveis/{id}/imagens/reordenar', 'ImovelController@reordenarImagens');
     Route::put('imoveis/{id}/imagens/{imagemId}/principal', 'ImovelController@definirImagemPrincipal');
     Route::delete('imoveis/{id}/imagens/{imagemId}', 'ImovelController@excluirImagem');
+    
+    // Rotas para listar opções do wizard
+    Route::group(['prefix' => 'imoveis/opcoes'], function () {
+        Route::get('tipos', 'ImovelOpcoesController@getTipos');
+        Route::get('subtipos/{tipo}', 'ImovelOpcoesController@getSubtipos');
+        Route::get('tipos-negocio', 'ImovelOpcoesController@getTiposNegocio');
+        Route::get('caracteristicas/{escopo}', 'ImovelOpcoesController@getCaracteristicas');
+        Route::get('proximidades', 'ImovelOpcoesController@getProximidades');
+        Route::get('portais', 'ImovelOpcoesController@getPortais');
+        Route::get('redes-sociais', 'ImovelOpcoesController@getRedesSociais');
+    });
+    
+    // Rotas para as etapas do wizard de imóveis
+    Route::group(['prefix' => 'imoveis/{id}/etapas'], function () {
+        // Verificar completude das etapas
+        Route::get('completude', 'ImovelEtapasController@verificarCompletude');
+        
+        // Etapa Informações
+        Route::get('informacoes', 'ImovelEtapasController@getInformacoes');
+        Route::put('informacoes', 'ImovelEtapasController@updateInformacoes');
+        
+        // Etapa Cômodos
+        Route::get('comodos', 'ImovelEtapasController@getComodos');
+        Route::put('comodos', 'ImovelEtapasController@updateComodos');
+        
+        // Etapa Medidas
+        Route::get('medidas', 'ImovelEtapasController@getMedidas');
+        Route::put('medidas', 'ImovelEtapasController@updateMedidas');
+        
+        // Etapa Preço
+        Route::get('preco', 'ImovelEtapasController@getPreco');
+        Route::put('preco', 'ImovelEtapasController@updatePreco');
+        
+        // Etapa Características
+        Route::get('caracteristicas', 'ImovelEtapasController@getCaracteristicas');
+        Route::put('caracteristicas', 'ImovelEtapasController@updateCaracteristicas');
+        
+        // Etapa Características do Condomínio
+        Route::get('caracteristicas-condominio', 'ImovelEtapasController@getCaracteristicasCondominio');
+        Route::put('caracteristicas-condominio', 'ImovelEtapasController@updateCaracteristicasCondominio');
+        
+        // Etapa Localização
+        Route::get('localizacao', 'ImovelEtapasController@getLocalizacao');
+        Route::put('localizacao', 'ImovelEtapasController@updateLocalizacao');
+        
+        // Etapa Proximidades
+        Route::get('proximidades', 'ImovelEtapasController@getProximidades');
+        Route::put('proximidades', 'ImovelEtapasController@updateProximidades');
+        
+        // Etapa Descrição
+        Route::get('descricao', 'ImovelEtapasController@getDescricao');
+        Route::put('descricao', 'ImovelEtapasController@updateDescricao');
+        
+        // Etapa Complementos
+        Route::get('complementos', 'ImovelEtapasController@getComplementos');
+        Route::put('complementos', 'ImovelEtapasController@updateComplementos');
+        
+        // Etapa Imagens
+        Route::get('imagens', 'ImovelEtapasController@getImagens');
+        Route::put('imagens', 'ImovelEtapasController@updateImagens');
+        
+        // Etapa Publicação
+        Route::get('publicacao', 'ImovelEtapasController@getPublicacao');
+        Route::put('publicacao', 'ImovelEtapasController@updatePublicacao');
+        
+        // Etapa Proprietário
+        Route::get('proprietario', 'ImovelEtapasController@getProprietario');
+        Route::put('proprietario', 'ImovelEtapasController@updateProprietario');
+        
+        // Etapa SEO
+        Route::get('seo', 'ImovelEtapasController@getSeo');
+        Route::put('seo', 'ImovelEtapasController@updateSeo');
+    });
 });
