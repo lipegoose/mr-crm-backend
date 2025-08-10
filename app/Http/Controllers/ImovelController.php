@@ -136,13 +136,15 @@ class ImovelController extends Controller
     /**
      * Exibe os detalhes de um imóvel específico.
      *
+     * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request, $id)
     {
         try {
-            $imovel = Imovel::with([
+            // Iniciar query com relacionamentos padrão
+            $query = Imovel::with([
                 'detalhes',
                 'condominio',
                 'caracteristicas',
@@ -160,11 +162,35 @@ class ImovelController extends Controller
                 'corretor',
                 'criadoPor',
                 'atualizadoPor'
-            ])->findOrFail($id);
+            ]);
+            
+            // Incluir histórico de preços se solicitado
+            if ($request->boolean('incluir_historico_precos')) {
+                $query->with(['precosHistorico' => function ($query) use ($request) {
+                    // Ordenar por data de início (decrescente)
+                    $query->orderBy('data_inicio', 'desc');
+                    
+                    // Filtrar por tipo de negócio se especificado
+                    if ($request->has('tipo_negocio')) {
+                        $query->where('tipo_negocio', $request->tipo_negocio);
+                    }
+                    
+                    // Filtrar apenas registros vigentes se solicitado
+                    if ($request->boolean('apenas_vigentes')) {
+                        $query->vigentes();
+                    }
+                    
+                    // Incluir usuários relacionados
+                    $query->with(['criadoPor', 'atualizadoPor']);
+                }]);
+            }
+            
+            $imovel = $query->findOrFail($id);
             
             return new ImovelResource($imovel);
         } catch (\Exception $e) {
             return response()->json([
+                'success' => false,
                 'message' => 'Erro ao buscar imóvel',
                 'error' => $e->getMessage()
             ], 500);
@@ -724,6 +750,7 @@ class ImovelController extends Controller
     {
         // Verificar se o imóvel já existe no banco (tem ID)
         if (!$imovel->exists) {
+            $this->registrarPrecoInicial($imovel);
             return;
         }
         
@@ -732,49 +759,112 @@ class ImovelController extends Controller
         
         // Verificar alteração no valor de venda
         if ($imovel->isDirty('valor_venda') && $imovel->valor_venda != $original->valor_venda) {
-            $this->registrarHistoricoPreco($imovel, 'VENDA', $original->valor_venda, $imovel->valor_venda);
+            $this->atualizarPrecoComHistorico($imovel, 'VENDA', $imovel->valor_venda, $original->valor_venda);
         }
         
         // Verificar alteração no valor de locação
         if ($imovel->isDirty('valor_locacao') && $imovel->valor_locacao != $original->valor_locacao) {
-            $this->registrarHistoricoPreco($imovel, 'LOCACAO', $original->valor_locacao, $imovel->valor_locacao);
+            $this->atualizarPrecoComHistorico($imovel, 'LOCACAO', $imovel->valor_locacao, $original->valor_locacao);
+        }
+        
+        // Verificar alteração no valor de temporada
+        if ($imovel->isDirty('valor_temporada') && $imovel->valor_temporada != $original->valor_temporada) {
+            $this->atualizarPrecoComHistorico($imovel, 'TEMPORADA', $imovel->valor_temporada, $original->valor_temporada);
         }
     }
 
     /**
-     * Registra um novo histórico de preço.
+     * Registra o preço inicial do imóvel no histórico.
+     *
+     * @param  \App\Models\Imovel  $imovel
+     * @return void
+     */
+    private function registrarPrecoInicial($imovel)
+    {
+        // Registrar preço de venda, se definido
+        if ($imovel->valor_venda > 0) {
+            $this->criarRegistroHistorico($imovel, 'VENDA', $imovel->valor_venda, 'Preço inicial', 'Registro do preço inicial de venda');
+        }
+        
+        // Registrar preço de locação, se definido
+        if ($imovel->valor_locacao > 0) {
+            $this->criarRegistroHistorico($imovel, 'LOCACAO', $imovel->valor_locacao, 'Preço inicial', 'Registro do preço inicial de locação');
+        }
+        
+        // Registrar preço de temporada, se definido
+        if ($imovel->valor_temporada > 0) {
+            $this->criarRegistroHistorico($imovel, 'TEMPORADA', $imovel->valor_temporada, 'Preço inicial', 'Registro do preço inicial de temporada');
+        }
+    }
+    
+    /**
+     * Atualiza o preço do imóvel e registra no histórico.
      *
      * @param  \App\Models\Imovel  $imovel
      * @param  string  $tipoNegocio
-     * @param  float  $valorAntigo
-     * @param  float  $valorNovo
+     * @param  float  $novoValor
+     * @param  float  $valorAnterior
+     * @param  string  $motivo
      * @return void
      */
-    private function registrarHistoricoPreco($imovel, $tipoNegocio, $valorAntigo, $valorNovo)
+    private function atualizarPrecoComHistorico($imovel, $tipoNegocio, $novoValor, $valorAnterior, $motivo = 'Atualização via cadastro')
     {
-        // Fechar o registro atual (se existir)
-        ImovelPrecoHistorico::where('imovel_id', $imovel->id)
-            ->where('tipo_negocio', $tipoNegocio)
-            ->whereNull('data_fim')
-            ->update([
-                'data_fim' => now(),
-                'updated_by' => Auth::id()
-            ]);
+        // Verificar se a diferença é significativa (2% ou mais)
+        $registrarHistorico = true;
         
-        // Criar novo registro
+        if ($valorAnterior > 0) {
+            $diferenca = abs(($novoValor - $valorAnterior) / $valorAnterior) * 100;
+            $registrarHistorico = $diferenca >= 2; // Registrar apenas se a diferença for de 2% ou mais
+        }
+        
+        // Se a diferença for significativa ou se for forçado o registro
+        if ($registrarHistorico) {
+            // Fechar o registro atual (se existir)
+            $hoje = Carbon::today();
+            $ontem = Carbon::yesterday();
+            
+            ImovelPrecoHistorico::where('imovel_id', $imovel->id)
+                ->where('tipo_negocio', $tipoNegocio)
+                ->whereNull('data_fim')
+                ->update([
+                    'data_fim' => $ontem,
+                    'updated_by' => Auth::id()
+                ]);
+            
+            // Criar novo registro
+            $observacao = "Alteração de R$ " . number_format($valorAnterior, 2, ',', '.') . 
+                         " para R$ " . number_format($novoValor, 2, ',', '.');
+            
+            $this->criarRegistroHistorico($imovel, $tipoNegocio, $novoValor, $motivo, $observacao);
+        }
+    }
+    
+    /**
+     * Cria um novo registro no histórico de preços.
+     *
+     * @param  \App\Models\Imovel  $imovel
+     * @param  string  $tipoNegocio
+     * @param  float  $valor
+     * @param  string  $motivo
+     * @param  string|null  $observacao
+     * @return \App\Models\ImovelPrecoHistorico
+     */
+    private function criarRegistroHistorico($imovel, $tipoNegocio, $valor, $motivo, $observacao = null)
+    {
         $historico = new ImovelPrecoHistorico();
         $historico->fill([
             'imovel_id' => $imovel->id,
             'tipo_negocio' => $tipoNegocio,
-            'valor' => $valorNovo,
-            'data_inicio' => now(),
-            'motivo' => 'Atualização de preço',
-            'observacao' => "Alteração de R$ " . number_format($valorAntigo, 2, ',', '.') . 
-                           " para R$ " . number_format($valorNovo, 2, ',', '.'),
+            'valor' => $valor,
+            'data_inicio' => Carbon::today(),
+            'motivo' => $motivo,
+            'observacao' => $observacao,
             'created_by' => Auth::id()
         ]);
         
         $historico->save();
+        
+        return $historico;
     }
     
     /**

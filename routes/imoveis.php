@@ -36,6 +36,23 @@ Route::group(['prefix' => 'api', 'middleware' => 'auth'], function () {
     Route::put('imoveis/{id}/imagens/{imagemId}/principal', 'ImovelController@definirImagemPrincipal');
     Route::delete('imoveis/{id}/imagens/{imagemId}', 'ImovelController@excluirImagem');
     
+    // Rotas para gerenciamento de vídeos
+    Route::post('imoveis/{id}/videos', 'ImovelVideoController@store');
+    Route::put('imoveis/{id}/videos/{videoId}', 'ImovelVideoController@update');
+    Route::delete('imoveis/{id}/videos/{videoId}', 'ImovelVideoController@destroy');
+    
+    // Rotas para gerenciamento de plantas
+    Route::post('imoveis/{id}/plantas', 'ImovelPlantaController@store');
+    Route::put('imoveis/{id}/plantas/{plantaId}', 'ImovelPlantaController@update');
+    Route::delete('imoveis/{id}/plantas/{plantaId}', 'ImovelPlantaController@destroy');
+    
+    // Rotas para histórico de preços
+    Route::get('imoveis/{imovelId}/precos-historico/analise-evolucao', 'ImovelPrecoHistoricoController@analiseEvolucao');
+    Route::get('imoveis/{imovelId}/precos-historico', 'ImovelPrecoHistoricoController@index');
+    Route::post('imoveis/{imovelId}/precos-historico', 'ImovelPrecoHistoricoController@store');
+    Route::put('imoveis/{imovelId}/precos-historico/{historicoId}', 'ImovelPrecoHistoricoController@update');
+    Route::delete('imoveis/{imovelId}/precos-historico/{historicoId}', 'ImovelPrecoHistoricoController@destroy');
+    
     // Rotas para listar opções do wizard
     Route::group(['prefix' => 'imoveis/opcoes'], function () {
         Route::get('tipos', 'ImovelOpcoesController@getTipos');
