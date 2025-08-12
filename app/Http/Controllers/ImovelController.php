@@ -394,18 +394,18 @@ class ImovelController extends Controller
             // Verificar se é um rascunho
             $isRascunho = $imovel->status === 'RASCUNHO';
             
-            // Verificar se o código de referência foi editado manualmente
-            $codigoEditadoManualmente = $request->has('codigo_referencia');
+            // Atualizar dados do imóvel (exceto código de referência)
+            $dadosValidados = $request->validated();
             
-            // Atualizar dados do imóvel
-            $imovel->fill($request->validated());
-            
-            // Se o código foi editado manualmente, marcar a flag
-            if ($codigoEditadoManualmente) {
-                $imovel->codigo_referencia_editado = true;
+            // Remover código de referência dos dados a serem atualizados
+            // para centralizar essa lógica no método atualizarCodigoReferencia
+            if (isset($dadosValidados['codigo_referencia'])) {
+                unset($dadosValidados['codigo_referencia']);
             }
             
-            // Atualizar código de referência se o tipo mudou e o código não foi personalizado
+            $imovel->fill($dadosValidados);
+            
+            // Atualizar código de referência apenas se o tipo mudou e o código não foi personalizado
             if ($tipoAnterior !== $imovel->tipo && !$imovel->codigo_referencia_editado) {
                 $imovel->codigo_referencia = $imovel->gerarCodigoReferencia();
             }
@@ -527,7 +527,7 @@ class ImovelController extends Controller
     }
 
     /**
-     * Atualiza o código de referência de um imóvel, APENAS quando for mudado o tipo do imóvel
+     * Atualiza o código de referência de um imóvel
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
@@ -536,9 +536,18 @@ class ImovelController extends Controller
     public function atualizarCodigoReferencia(Request $request, $id)
     {
         try {
-            $request->validate([
-                'codigo_referencia' => 'required|string|max:20'
+            // Usar Validator ao invés de validate() que não existe no Lumen
+            $validator = Validator::make($request->all(), [
+                'codigo_referencia' => 'required|string|max:20',
+                'editado_manualmente' => 'boolean'
             ]);
+            
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Erro de validação',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
             
             $imovel = Imovel::findOrFail($id);
             
@@ -555,6 +564,12 @@ class ImovelController extends Controller
             }
             
             $imovel->codigo_referencia = $request->codigo_referencia;
+            
+            // Atualizar flag de edição manual se fornecido
+            if ($request->has('editado_manualmente')) {
+                $imovel->codigo_referencia_editado = $request->editado_manualmente;
+            }
+            
             $imovel->save();
             
             return response()->json([
