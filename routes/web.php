@@ -13,7 +13,7 @@ Route::get('/', function () {
 });
 
 // Rotas de autenticação
-Route::group(['prefix' => 'auth'], function () {
+Route::group(['prefix' => 'api/auth'], function () {
     Route::post('login', 'AuthController@login');
     Route::post('register', 'AuthController@register');
     
@@ -26,7 +26,7 @@ Route::group(['prefix' => 'auth'], function () {
 });
 
 // Rota de teste protegida
-Route::group(['middleware' => 'auth:api'], function () {
+Route::group(['prefix' => 'api', 'middleware' => 'auth:api'], function () {
     Route::get('test', function () {
         return response()->json([
             'message' => 'Rota protegida funcionando!',
