@@ -27,7 +27,8 @@ Route::group(['prefix' => 'api', 'middleware' => 'auth'], function () {
     Route::delete('imoveis/{id}', 'ImovelController@destroy');
     
     // Rotas para código de referência
-    Route::get('imoveis/codigo-referencia/{codigo}/{id?}', 'ImovelController@validarCodigoReferencia');
+    Route::get('imoveis/codigo-referencia/{codigo}', 'ImovelController@validarCodigoReferencia');
+    Route::get('imoveis/codigo-referencia/{codigo}/{id}', 'ImovelController@validarCodigoReferencia');
     Route::put('imoveis/{id}/codigo-referencia', 'ImovelController@atualizarCodigoReferencia');
     
     // Rotas para gerenciamento de imagens
