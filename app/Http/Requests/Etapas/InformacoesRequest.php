@@ -18,10 +18,56 @@ class InformacoesRequest
      */
     public function validate(Request $request, bool $isRascunho = false)
     {
+        // Normalizar os valores antes da validação
+        $dados = $request->all();
+        
+        // Lista de valores válidos para cada campo
+        $tiposValidos = [
+            'APARTAMENTO', 'APARTAMENTO-COBERTURA', 'APARTAMENTO-DUPLEX', 
+            'CASA', 'CASA-CONDOMINIO', 'CHACARA', 'COMERCIAL-LOJA', 
+            'COMERCIAL-SALA', 'COMERCIAL-GALPAO', 'TERRENO', 'FAZENDA', 'SITIO'
+        ];
+        
+        $perfisValidos = ['RESIDENCIAL', 'COMERCIAL', 'INDUSTRIAL', 'RURAL'];
+        $situacoesValidas = ['NOVO', 'USADO', 'PLANTA', 'CONSTRUCAO', 'REFORMA'];
+        
+        // Normalizar tipo
+        if (isset($dados['tipo'])) {
+            $tipoUpper = strtoupper($dados['tipo']);
+            foreach ($tiposValidos as $tipo) {
+                if ($tipoUpper === strtoupper($tipo)) {
+                    $dados['tipo'] = $tipo;
+                    break;
+                }
+            }
+        }
+        
+        // Normalizar perfil
+        if (isset($dados['perfil'])) {
+            $perfilUpper = strtoupper($dados['perfil']);
+            foreach ($perfisValidos as $perfil) {
+                if ($perfilUpper === $perfil) {
+                    $dados['perfil'] = $perfil;
+                    break;
+                }
+            }
+        }
+        
+        // Normalizar situação
+        if (isset($dados['situacao'])) {
+            $situacaoUpper = strtoupper($dados['situacao']);
+            foreach ($situacoesValidas as $situacao) {
+                if ($situacaoUpper === $situacao) {
+                    $dados['situacao'] = $situacao;
+                    break;
+                }
+            }
+        }
+        
         $rules = $this->rules($isRascunho);
         $messages = $this->messages();
         
-        $validator = Validator::make($request->all(), $rules, $messages);
+        $validator = Validator::make($dados, $rules, $messages);
         
         if ($validator->fails()) {
             throw new ValidationException($validator);
@@ -40,7 +86,7 @@ class InformacoesRequest
     {
         // Regras básicas que se aplicam mesmo em modo rascunho
         $rules = [
-            'tipo' => 'sometimes|string|in:apartamento,apartamento-cobertura,apartamento-duplex,casa,casa-condominio,chacara,comercial-loja,comercial-sala,comercial-galpao,terreno,fazenda,sitio',
+            'tipo' => 'sometimes|string|in:APARTAMENTO,APARTAMENTO-COBERTURA,APARTAMENTO-DUPLEX,CASA,CASA-CONDOMINIO,CHACARA,COMERCIAL-LOJA,COMERCIAL-SALA,COMERCIAL-GALPAO,TERRENO,FAZENDA,SITIO',
             'subtipo' => 'sometimes|nullable|string|max:50',
             'perfil' => 'sometimes|string|in:RESIDENCIAL,COMERCIAL,INDUSTRIAL,RURAL',
             'situacao' => 'sometimes|string|in:NOVO,USADO,PLANTA,CONSTRUCAO,REFORMA',
@@ -60,7 +106,7 @@ class InformacoesRequest
         // Se não for rascunho, adiciona regras de obrigatoriedade
         if (!$isRascunho) {
             $rules = array_merge($rules, [
-                'tipo' => 'required|string|in:apartamento,apartamento-cobertura,apartamento-duplex,casa,casa-condominio,chacara,comercial-loja,comercial-sala,comercial-galpao,terreno,fazenda,sitio',
+                'tipo' => 'required|string|in:APARTAMENTO,APARTAMENTO-COBERTURA,APARTAMENTO-DUPLEX,CASA,CASA-CONDOMINIO,CHACARA,COMERCIAL-LOJA,COMERCIAL-SALA,COMERCIAL-GALPAO,TERRENO,FAZENDA,SITIO',
                 'perfil' => 'required|string|in:RESIDENCIAL,COMERCIAL,INDUSTRIAL,RURAL',
                 'situacao' => 'required|string|in:NOVO,USADO,PLANTA,CONSTRUCAO,REFORMA',
                 'proprietario_id' => 'required|integer|exists:clientes,id',
