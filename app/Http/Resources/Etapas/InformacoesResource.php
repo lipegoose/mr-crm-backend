@@ -20,6 +20,7 @@ class InformacoesResource extends JsonResource
             'tipo' => $this->tipo,
             'subtipo' => $this->subtipo,
             'perfil' => $this->perfil,
+            'situacao' => $this->situacao,
             'finalidade' => $this->finalidade,
             'tipo_negocio' => $this->tipo_negocio,
             'status' => $this->status,
@@ -30,6 +31,8 @@ class InformacoesResource extends JsonResource
             'mobiliado' => (bool) $this->mobiliado,
             'reformado' => (bool) $this->reformado,
             'ano_reforma' => $this->ano_reforma,
+            'proprietario_id' => $this->proprietario_id,
+            'corretor_id' => $this->corretor_id,
             'condominio_id' => $this->condominio_id,
             'condominio' => $this->whenLoaded('condominio', function () {
                 return [
@@ -38,6 +41,12 @@ class InformacoesResource extends JsonResource
                     'endereco' => $this->condominio->formatarEndereco(),
                 ];
             }),
+            'incorporacao' => $this->incorporacao,
+            'posicao_solar' => $this->posicao_solar,
+            'terreno' => $this->terreno,
+            'escriturado' => (bool) $this->escriturado,
+            'esquina' => (bool) $this->esquina,
+            'averbado' => (bool) $this->averbado,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
