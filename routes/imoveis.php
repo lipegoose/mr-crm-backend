@@ -124,5 +124,9 @@ Route::group(['prefix' => 'api', 'middleware' => 'auth'], function () {
         // Etapa SEO
         Route::get('seo', 'ImovelEtapasController@getSeo');
         Route::put('seo', 'ImovelEtapasController@updateSeo');
+        
+        // Etapa Dados Privativos
+        Route::get('dados-privativos', 'ImovelEtapasController@getDadosPrivativos');
+        Route::put('dados-privativos', 'ImovelEtapasController@updateDadosPrivativos');
     });
 });

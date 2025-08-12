@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Date;
 
 class ImovelDetalhe extends Model
 {
@@ -114,7 +115,7 @@ class ImovelDetalhe extends Model
             return false;
         }
         
-        $hoje = now();
+        $hoje = Date::now();
         
         // Se tem data de início, verificar se já começou
         if ($this->data_inicio_exclusividade && $hoje->lt($this->data_inicio_exclusividade)) {

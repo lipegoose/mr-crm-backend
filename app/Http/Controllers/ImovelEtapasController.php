@@ -16,11 +16,13 @@ use App\Http\Requests\Etapas\ProprietarioRequest;
 use App\Http\Requests\Etapas\ProximidadesRequest;
 use App\Http\Requests\Etapas\PublicacaoRequest;
 use App\Http\Requests\Etapas\SeoRequest;
+use App\Http\Requests\Etapas\DadosPrivativosRequest;
 use App\Http\Resources\Etapas\CaracteristicasCondominioResource;
 use App\Http\Resources\Etapas\CaracteristicasResource;
 use App\Http\Resources\Etapas\ComodosResource;
 use App\Http\Resources\Etapas\ComplementosResource;
 use App\Http\Resources\Etapas\DescricaoResource;
+use App\Http\Resources\Etapas\DadosPrivativosResource;
 use App\Http\Resources\Etapas\ImagensResource;
 use App\Http\Resources\Etapas\InformacoesResource;
 use App\Http\Resources\Etapas\LocalizacaoResource;
@@ -82,6 +84,7 @@ class ImovelEtapasController extends Controller
             'imagens' => false,
             'publicacao' => true, // Opcional
             'proprietario' => false,
+            'dados_privativos' => true, // Opcional
             'seo' => true, // Opcional
         ];
         
@@ -1528,6 +1531,101 @@ class ImovelEtapasController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Erro ao atualizar dados SEO do imóvel.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+    
+    /**
+     * Obtém os dados da etapa Dados Privativos de um imóvel.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getDadosPrivativos($id)
+    {
+        try {
+            $imovel = $this->verificarImovel($id);
+            $imovel->load('corretor');
+            
+            return response()->json([
+                'success' => true,
+                'data' => new DadosPrivativosResource($imovel),
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erro ao obter dados privativos do imóvel: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao obter dados privativos do imóvel.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+    
+    /**
+     * Atualiza os dados da etapa Dados Privativos de um imóvel.
+     *
+     * @param int $id
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateDadosPrivativos($id, Request $request)
+    {
+        try {
+            $imovel = $this->verificarImovel($id);
+            
+            // Verificar se é modo rascunho
+            $isRascunho = $request->has('rascunho') && $request->rascunho === 'true';
+            
+            // Validar dados
+            $dadosPrivativosRequest = new DadosPrivativosRequest();
+            $dados = $dadosPrivativosRequest->validate($request, $isRascunho);
+            
+            // Atualizar imóvel e detalhes
+            DB::beginTransaction();
+            
+            // Atualizar corretor_id no imóvel
+            if (array_key_exists('corretor_id', $dados)) {
+                $imovel->corretor_id = $dados['corretor_id'];
+                $imovel->save();
+            }
+            
+            // Garantir que o registro de detalhes existe
+            $detalhes = $imovel->detalhes;
+            if (!$detalhes) {
+                $detalhes = new ImovelDetalhe(['id' => $imovel->id]);
+                $detalhes->save();
+                $imovel->refresh();
+            }
+            
+            // Remover corretor_id dos dados para não tentar salvar na tabela errada
+            unset($dados['corretor_id']);
+            
+            // Atualizar dados privativos
+            $imovel->detalhes->update($dados);
+            
+            DB::commit();
+            
+            // Recarregar relacionamentos
+            $imovel->load('corretor');
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Dados privativos atualizados com sucesso.',
+                'data' => new DadosPrivativosResource($imovel),
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro de validação.',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erro ao atualizar dados privativos: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erro ao atualizar dados privativos.',
                 'error' => $e->getMessage(),
             ], 500);
         }
