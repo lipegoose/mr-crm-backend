@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Grupo de rotas protegidas por autenticação
-Route::group(['prefix' => 'api', 'middleware' => 'auth'], function () {
+Route::group(['prefix' => 'api', 'middleware' => 'auth:api'], function () {
     // Rotas CRUD básicas
     Route::get('imoveis', 'ImovelController@index');
     
