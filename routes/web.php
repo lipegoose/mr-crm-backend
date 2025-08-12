@@ -37,3 +37,6 @@ Route::group(['prefix' => 'api', 'middleware' => 'auth:api'], function () {
 
 // Incluir rotas de imóveis
 require __DIR__ . '/imoveis.php';
+
+// Incluir rotas de clientes
+require __DIR__ . '/clientes.php';
