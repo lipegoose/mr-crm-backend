@@ -40,3 +40,6 @@ require __DIR__ . '/imoveis.php';
 
 // Incluir rotas de clientes
 require __DIR__ . '/clientes.php';
+
+// Incluir rotas de condomínios
+require __DIR__ . '/condominios.php';
