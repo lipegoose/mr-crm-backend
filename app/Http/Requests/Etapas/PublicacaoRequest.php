@@ -50,8 +50,8 @@ class PublicacaoRequest
             'redes_sociais.*' => 'string|max:100',
             'data_publicacao' => 'sometimes|nullable|date',
             'data_expiracao' => 'sometimes|nullable|date|after_or_equal:data_publicacao',
-            'status' => 'sometimes|string|in:ATIVO,INATIVO,VENDIDO,ALUGADO,RESERVADO,CANCELADO',
-            'situacoes' => 'sometimes|string|exists:situacoes,value',
+            'status' => 'sometimes|string|in:ATIVO,INATIVO,VENDIDO,ALUGADO,RESERVADO,EM_NEGOCIACAO,RASCUNHO',
+            'situacao' => 'sometimes|string|exists:situacoes,value',
         ];
         
         // Não há regras adicionais para modo não-rascunho nesta etapa

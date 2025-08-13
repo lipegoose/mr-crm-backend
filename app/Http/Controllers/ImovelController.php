@@ -210,15 +210,17 @@ class ImovelController extends Controller
             // Criar imóvel com valores padrão
             $imovel = new Imovel();
             
-            // Buscar valor padrão para perfil e status
+            // Buscar valor padrão para perfil
             $perfilPadrao = \App\Models\Perfil::where('value', 'RESIDENCIAL')->first();
-            $statusPadrao = \App\Models\Situacao::where('value', 'RASCUNHO')->first();
+            // Buscar valor padrão para situacao (situação física do imóvel)
+            $situacaoPadrao = \App\Models\Situacao::where('value', 'NOVO')->first();
             
             $imovel->fill([
                 'tipo' => 'APARTAMENTO',
                 'subtipo' => 'PADRAO',
                 'perfil' => $perfilPadrao ? $perfilPadrao->value : 'RESIDENCIAL',
-                'status' => $statusPadrao ? $statusPadrao->value : 'RASCUNHO',
+                'situacao' => $situacaoPadrao ? $situacaoPadrao->value : 'NOVO',
+                'status' => 'RASCUNHO', // Status do imóvel (RASCUNHO, ATIVO, etc)
                 'corretor_id' => Auth::id(),
                 'created_by' => Auth::id()
             ]);
@@ -277,7 +279,7 @@ class ImovelController extends Controller
             
             // Copiar atributos básicos do imóvel
             $atributosParaCopiar = [
-                'tipo', 'subtipo', 'perfil', 'tipo_negocio',
+                'tipo', 'subtipo', 'perfil', 'situacao', 'tipo_negocio',
                 'quartos', 'suites', 'banheiros', 'vagas',
                 'area_total', 'area_privativa', 'area_terreno', 'unidade_medida',
                 'andar', 'total_andares', 'unidades_andar', 'unidades_predio',
