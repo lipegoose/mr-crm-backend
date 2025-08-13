@@ -88,7 +88,7 @@ class InformacoesRequest
     {
         // Regras básicas que se aplicam mesmo em modo rascunho
         $rules = [
-            'tipo' => 'sometimes|string|in:APARTAMENTO,APARTAMENTO-COBERTURA,APARTAMENTO-DUPLEX,CASA,CASA-CONDOMINIO,CHACARA,COMERCIAL-LOJA,COMERCIAL-SALA,COMERCIAL-GALPAO,TERRENO,FAZENDA,SITIO',
+            'tipo' => 'sometimes|string|in:APARTAMENTO,CASA,COMERCIAL,TERRENO,RURAL,INDUSTRIAL',
             'subtipo' => 'sometimes|nullable|string|max:50',
             'perfil' => 'sometimes|string|exists:perfis,value',
             'situacao' => 'sometimes|string|exists:situacoes,value',
@@ -108,7 +108,7 @@ class InformacoesRequest
         // Se não for rascunho, adiciona regras de obrigatoriedade
         if (!$isRascunho) {
             $rules = array_merge($rules, [
-                'tipo' => 'required|string|in:APARTAMENTO,APARTAMENTO-COBERTURA,APARTAMENTO-DUPLEX,CASA,CASA-CONDOMINIO,CHACARA,COMERCIAL-LOJA,COMERCIAL-SALA,COMERCIAL-GALPAO,TERRENO,FAZENDA,SITIO',
+                'tipo' => 'required|string|in:APARTAMENTO,CASA,COMERCIAL,TERRENO,RURAL,INDUSTRIAL',
                 'perfil' => 'required|string|exists:perfis,value',
                 'situacao' => 'required|string|exists:situacoes,value',
                 'proprietario_id' => 'required|integer|exists:clientes,id',

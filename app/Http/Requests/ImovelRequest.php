@@ -44,7 +44,7 @@ class ImovelRequest extends FormRequest
                 'max:20',
                 Rule::unique('imoveis')->ignore($imovelId)
             ],
-            'tipo' => 'nullable|string|in:APARTAMENTO,CASA,TERRENO,COMERCIAL-LOJA,COMERCIAL-SALA,COMERCIAL-GALPAO,CHACARA,FAZENDA,SITIO',
+            'tipo' => 'nullable|string|in:APARTAMENTO,CASA,COMERCIAL,TERRENO,RURAL,INDUSTRIAL',
             'subtipo' => 'nullable|string|max:50',
             'status' => 'nullable|string|in:RASCUNHO,ATIVO,INATIVO,VENDIDO,ALUGADO,RESERVADO,EM_NEGOCIACAO',
             'perfil' => 'nullable|string|exists:perfis,value',
@@ -105,7 +105,7 @@ class ImovelRequest extends FormRequest
         // Se não for rascunho e estiver tentando ativar, aplicar regras mais rígidas
         if (!$isRascunho && $this->input('status') === 'ATIVO') {
             $rules = array_merge($rules, [
-                'tipo' => 'required|string|in:APARTAMENTO,CASA,TERRENO,COMERCIAL-LOJA,COMERCIAL-SALA,COMERCIAL-GALPAO,CHACARA,FAZENDA,SITIO',
+                'tipo' => 'required|string|in:APARTAMENTO,CASA,COMERCIAL,TERRENO,RURAL,INDUSTRIAL',
                 'subtipo' => 'required|string|max:50',
                 'perfil' => 'required|string|exists:perfis,value',
                 'proprietario_id' => 'required|integer|exists:users,id',

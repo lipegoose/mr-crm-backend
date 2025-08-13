@@ -216,8 +216,8 @@ class ImovelController extends Controller
             $situacaoPadrao = \App\Models\Situacao::where('value', 'NOVO')->first();
             
             $imovel->fill([
-                'tipo' => 'APARTAMENTO',
-                'subtipo' => 'PADRAO',
+                'tipo' => 'APARTAMENTO', // Tipo válido conforme ImovelOpcoesController::getTipos()
+                'subtipo' => 'PADRAO', // Subtipo válido para APARTAMENTO conforme ImovelOpcoesController::getSubtipos()
                 'perfil' => $perfilPadrao ? $perfilPadrao->value : 'RESIDENCIAL',
                 'situacao' => $situacaoPadrao ? $situacaoPadrao->value : 'NOVO',
                 'status' => 'RASCUNHO', // Status do imóvel (RASCUNHO, ATIVO, etc)
