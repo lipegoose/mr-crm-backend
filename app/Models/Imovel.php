@@ -592,4 +592,16 @@ class Imovel extends Model
                 return $query->where('tipo_negocio', $tipo);
         }
     }
+    
+    /**
+     * Mutator para o campo incorporacao
+     * Garante que o valor seja sempre tratado como string
+     *
+     * @param mixed $value
+     * @return void
+     */
+    public function setIncorporacaoAttribute($value)
+    {
+        $this->attributes['incorporacao'] = is_null($value) ? null : (string) $value;
+    }
 }

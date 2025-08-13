@@ -52,6 +52,14 @@ class ImovelRequest extends FormRequest
             'proprietario_id' => 'nullable|integer|exists:users,id',
             'corretor_id' => 'nullable|integer|exists:users,id',
             'condominio_id' => 'nullable|integer|exists:condominios,id',
+            'ano_construcao' => 'nullable|integer|min:1900|max:' . (date('Y') + 10),
+            'incorporacao' => 'nullable|string|max:100',
+            'posicao_solar' => 'nullable|string|exists:posicoes_solares,value',
+            'terreno' => 'nullable|string|in:PLANO,ACLIVE,DECLIVE',
+            'escriturado' => 'nullable|boolean',
+            'esquina' => 'nullable|boolean',
+            'mobiliado' => 'nullable|boolean',
+            'averbado' => 'nullable|boolean',
             
             // Campos de endereço
             'cep' => 'nullable|string|max:10',
