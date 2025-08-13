@@ -20,6 +20,10 @@ class DatabaseSeeder extends Seeder
             ProximidadesSeeder::class,
             ClienteExemploSeeder::class,
             CondominioExemploSeeder::class,
+            // Novos seeders para cadastros de imóveis
+            PerfisSeeder::class,
+            SituacoesSeeder::class,
+            PosicoesSeeder::class,
             // TiposSubtiposSeeder é referência e não precisa ser executado
         ]);
     }
