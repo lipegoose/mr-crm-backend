@@ -96,7 +96,7 @@ class PerfisController extends Controller
      */
     public function listarParaSelect()
     {
-        $perfis = Perfil::orderBy('label')
+        $perfis = Perfil::orderBy('id')
             ->select('value', 'label')
             ->get()
             ->toArray();

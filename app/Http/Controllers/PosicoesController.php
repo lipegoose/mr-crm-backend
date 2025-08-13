@@ -96,7 +96,7 @@ class PosicoesController extends Controller
      */
     public function listarParaSelect()
     {
-        $posicoes = PosicaoSolar::orderBy('label')
+        $posicoes = PosicaoSolar::orderBy('id')
             ->select('value', 'label')
             ->get()
             ->toArray();

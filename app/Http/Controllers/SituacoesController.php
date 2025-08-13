@@ -96,7 +96,7 @@ class SituacoesController extends Controller
      */
     public function listarParaSelect()
     {
-        $situacoes = Situacao::orderBy('label')
+        $situacoes = Situacao::orderBy('id')
             ->select('value', 'label')
             ->get()
             ->toArray();
