@@ -209,11 +209,16 @@ class ImovelController extends Controller
             
             // Criar imóvel com valores padrão
             $imovel = new Imovel();
+            
+            // Buscar valor padrão para perfil e status
+            $perfilPadrao = \App\Models\Perfil::where('value', 'RESIDENCIAL')->first();
+            $statusPadrao = \App\Models\Situacao::where('value', 'RASCUNHO')->first();
+            
             $imovel->fill([
                 'tipo' => 'APARTAMENTO',
                 'subtipo' => 'PADRAO',
-                'perfil' => 'RESIDENCIAL',
-                'status' => 'RASCUNHO',
+                'perfil' => $perfilPadrao ? $perfilPadrao->value : 'RESIDENCIAL',
+                'status' => $statusPadrao ? $statusPadrao->value : 'RASCUNHO',
                 'corretor_id' => Auth::id(),
                 'created_by' => Auth::id()
             ]);

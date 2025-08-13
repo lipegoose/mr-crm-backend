@@ -28,8 +28,10 @@ class InformacoesRequest
             'COMERCIAL-SALA', 'COMERCIAL-GALPAO', 'TERRENO', 'FAZENDA', 'SITIO'
         ];
         
-        $perfisValidos = ['RESIDENCIAL', 'COMERCIAL', 'INDUSTRIAL', 'RURAL'];
-        $situacoesValidas = ['NOVO', 'USADO', 'PLANTA', 'CONSTRUCAO', 'REFORMA'];
+        // Buscar perfis válidos do banco de dados
+        $perfisValidos = \App\Models\Perfil::pluck('value')->toArray();
+        // Buscar situações válidas do banco de dados
+        $situacoesValidas = \App\Models\Situacao::pluck('value')->toArray();
         
         // Normalizar tipo
         if (isset($dados['tipo'])) {
@@ -88,13 +90,13 @@ class InformacoesRequest
         $rules = [
             'tipo' => 'sometimes|string|in:APARTAMENTO,APARTAMENTO-COBERTURA,APARTAMENTO-DUPLEX,CASA,CASA-CONDOMINIO,CHACARA,COMERCIAL-LOJA,COMERCIAL-SALA,COMERCIAL-GALPAO,TERRENO,FAZENDA,SITIO',
             'subtipo' => 'sometimes|nullable|string|max:50',
-            'perfil' => 'sometimes|string|in:RESIDENCIAL,COMERCIAL,INDUSTRIAL,RURAL',
-            'situacao' => 'sometimes|string|in:NOVO,USADO,PLANTA,CONSTRUCAO,REFORMA',
+            'perfil' => 'sometimes|string|exists:perfis,value',
+            'situacao' => 'sometimes|string|exists:situacoes,value',
             'proprietario_id' => 'sometimes|nullable|integer|exists:clientes,id',
             'condominio_id' => 'sometimes|nullable|integer|exists:condominios,id',
             'ano_construcao' => 'sometimes|nullable|integer|min:1900|max:' . (date('Y') + 10),
             'incorporacao' => 'sometimes|nullable|string|max:100',
-            'posicao_solar' => 'sometimes|nullable|string|in:NORTE,SUL,LESTE,OESTE,NORDESTE,NOROESTE,SUDESTE,SUDOESTE',
+            'posicao_solar' => 'sometimes|nullable|string|exists:posicoes_solares,value',
             'terreno' => 'sometimes|nullable|string|max:100',
             'escriturado' => 'sometimes|boolean',
             'esquina' => 'sometimes|boolean',
@@ -107,8 +109,8 @@ class InformacoesRequest
         if (!$isRascunho) {
             $rules = array_merge($rules, [
                 'tipo' => 'required|string|in:APARTAMENTO,APARTAMENTO-COBERTURA,APARTAMENTO-DUPLEX,CASA,CASA-CONDOMINIO,CHACARA,COMERCIAL-LOJA,COMERCIAL-SALA,COMERCIAL-GALPAO,TERRENO,FAZENDA,SITIO',
-                'perfil' => 'required|string|in:RESIDENCIAL,COMERCIAL,INDUSTRIAL,RURAL',
-                'situacao' => 'required|string|in:NOVO,USADO,PLANTA,CONSTRUCAO,REFORMA',
+                'perfil' => 'required|string|exists:perfis,value',
+                'situacao' => 'required|string|exists:situacoes,value',
                 'proprietario_id' => 'required|integer|exists:clientes,id',
             ]);
         }
