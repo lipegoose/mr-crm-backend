@@ -604,4 +604,16 @@ class Imovel extends Model
     {
         $this->attributes['incorporacao'] = is_null($value) ? null : (string) $value;
     }
+    
+    /**
+     * Mutator para o campo terreno
+     * Garante que o valor seja sempre convertido para maiúsculo
+     *
+     * @param mixed $value
+     * @return void
+     */
+    public function setTerrenoAttribute($value)
+    {
+        $this->attributes['terreno'] = is_null($value) ? null : strtoupper((string) $value);
+    }
 }

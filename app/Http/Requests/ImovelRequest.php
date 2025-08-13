@@ -55,7 +55,7 @@ class ImovelRequest extends FormRequest
             'ano_construcao' => 'nullable|integer|min:1900|max:' . (date('Y') + 10),
             'incorporacao' => 'nullable|string|max:100',
             'posicao_solar' => 'nullable|string|exists:posicoes_solares,value',
-            'terreno' => 'nullable|string|in:PLANO,ACLIVE,DECLIVE',
+            'terreno' => 'nullable|string|in:PLANO,ACLIVE,DECLIVE,plano,aclive,declive',
             'escriturado' => 'nullable|boolean',
             'esquina' => 'nullable|boolean',
             'mobiliado' => 'nullable|boolean',
