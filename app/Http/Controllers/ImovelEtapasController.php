@@ -192,7 +192,11 @@ class ImovelEtapasController extends Controller
             // Atualizar imóvel
             DB::beginTransaction();
             
-            $imovel->update($dados);
+            // Usar fill para atualizar apenas os campos enviados na requisição
+            $imovel->fill($dados);
+            
+            // Salvar as alterações
+            $imovel->save();
             
             DB::commit();
             
@@ -268,7 +272,11 @@ class ImovelEtapasController extends Controller
             // Atualizar imóvel
             DB::beginTransaction();
             
-            $imovel->update($dados);
+            // Usar fill para atualizar apenas os campos enviados na requisição
+            $imovel->fill($dados);
+            
+            // Salvar as alterações
+            $imovel->save();
             
             DB::commit();
             
@@ -341,7 +349,11 @@ class ImovelEtapasController extends Controller
             // Atualizar imóvel
             DB::beginTransaction();
             
-            $imovel->update($dados);
+            // Usar fill para atualizar apenas os campos enviados na requisição
+            $imovel->fill($dados);
+            
+            // Salvar as alterações
+            $imovel->save();
             
             DB::commit();
             
@@ -438,7 +450,11 @@ class ImovelEtapasController extends Controller
                 ]);
             }
             
-            $imovel->update($dados);
+            // Usar fill para atualizar apenas os campos enviados na requisição
+            $imovel->fill($dados);
+            
+            // Salvar as alterações
+            $imovel->save();
             
             DB::commit();
             
@@ -715,7 +731,11 @@ class ImovelEtapasController extends Controller
             // Atualizar imóvel
             DB::beginTransaction();
             
-            $imovel->update($dados);
+            // Usar fill para atualizar apenas os campos enviados na requisição
+            $imovel->fill($dados);
+            
+            // Salvar as alterações
+            $imovel->save();
             
             DB::commit();
             

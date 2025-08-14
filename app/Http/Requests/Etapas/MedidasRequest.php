@@ -55,6 +55,7 @@ class MedidasRequest
     protected function rules(bool $isRascunho = false)
     {
         // Regras básicas que se aplicam mesmo em modo rascunho
+        // Usando 'sometimes' para garantir que apenas os campos enviados sejam validados
         $rules = [
             'area_construida' => 'sometimes|nullable|numeric|min:0',
             'area_privativa' => 'sometimes|nullable|numeric|min:0',
@@ -62,12 +63,27 @@ class MedidasRequest
             'unidade_medida' => 'sometimes|string|in:m2,ha,alq',
         ];
         
-        // Se não for rascunho, adiciona regras de obrigatoriedade
+        // Se não for rascunho e estiver tentando enviar todos os campos obrigatórios,
+        // adiciona regras de obrigatoriedade apenas para os campos presentes na requisição
         if (!$isRascunho) {
-            $rules = array_merge($rules, [
-                'area_total' => 'required|numeric|min:0',
-                'unidade_medida' => 'required|string|in:m2,ha,alq',
-            ]);
+            // Verificamos se os campos obrigatórios estão presentes na requisição
+            $camposObrigatorios = ['area_total', 'unidade_medida'];
+            $todosObrigatoriosPresentes = true;
+            
+            foreach ($camposObrigatorios as $campo) {
+                if (!request()->has($campo)) {
+                    $todosObrigatoriosPresentes = false;
+                    break;
+                }
+            }
+            
+            // Se todos os campos obrigatórios estiverem presentes, aplicamos as regras de obrigatoriedade
+            if ($todosObrigatoriosPresentes) {
+                $rules = array_merge($rules, [
+                    'area_total' => 'required|numeric|min:0',
+                    'unidade_medida' => 'required|string|in:m2,ha,alq',
+                ]);
+            }
         }
         
         return $rules;

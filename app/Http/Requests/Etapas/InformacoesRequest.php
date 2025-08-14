@@ -87,6 +87,7 @@ class InformacoesRequest
     protected function rules(bool $isRascunho = false)
     {
         // Regras básicas que se aplicam mesmo em modo rascunho
+        // Usando 'sometimes' para garantir que apenas os campos enviados sejam validados
         $rules = [
             'tipo' => 'sometimes|string|in:APARTAMENTO,CASA,COMERCIAL,TERRENO,RURAL,INDUSTRIAL',
             'subtipo' => 'sometimes|nullable|string|max:50',
@@ -105,14 +106,29 @@ class InformacoesRequest
             'corretor_id' => 'sometimes|nullable|integer|exists:users,id',
         ];
         
-        // Se não for rascunho, adiciona regras de obrigatoriedade
+        // Se não for rascunho e estiver tentando enviar todos os campos obrigatórios,
+        // adiciona regras de obrigatoriedade apenas para os campos presentes na requisição
         if (!$isRascunho) {
-            $rules = array_merge($rules, [
-                'tipo' => 'required|string|in:APARTAMENTO,CASA,COMERCIAL,TERRENO,RURAL,INDUSTRIAL',
-                'perfil' => 'required|string|exists:perfis,value',
-                'situacao' => 'required|string|exists:situacoes,value',
-                'proprietario_id' => 'required|integer|exists:clientes,id',
-            ]);
+            // Verificamos se os campos obrigatórios estão presentes na requisição
+            $camposObrigatorios = ['tipo', 'perfil', 'situacao', 'proprietario_id'];
+            $todosObrigatoriosPresentes = true;
+            
+            foreach ($camposObrigatorios as $campo) {
+                if (!request()->has($campo)) {
+                    $todosObrigatoriosPresentes = false;
+                    break;
+                }
+            }
+            
+            // Se todos os campos obrigatórios estiverem presentes, aplicamos as regras de obrigatoriedade
+            if ($todosObrigatoriosPresentes) {
+                $rules = array_merge($rules, [
+                    'tipo' => 'required|string|in:APARTAMENTO,CASA,COMERCIAL,TERRENO,RURAL,INDUSTRIAL',
+                    'perfil' => 'required|string|exists:perfis,value',
+                    'situacao' => 'required|string|exists:situacoes,value',
+                    'proprietario_id' => 'required|integer|exists:clientes,id',
+                ]);
+            }
         }
         
         return $rules;

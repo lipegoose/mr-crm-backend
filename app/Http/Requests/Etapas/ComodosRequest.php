@@ -39,6 +39,7 @@ class ComodosRequest
     protected function rules(bool $isRascunho = false)
     {
         // Regras básicas que se aplicam mesmo em modo rascunho
+        // Usando 'sometimes' para garantir que apenas os campos enviados sejam validados
         $rules = [
             'dormitorios' => 'sometimes|nullable|integer|min:0|max:20',
             'suites' => 'sometimes|nullable|integer|min:0|max:20',
@@ -58,12 +59,27 @@ class ComodosRequest
             'copa' => 'sometimes|nullable|integer|min:0|max:10',
         ];
         
-        // Se não for rascunho, adiciona regras de obrigatoriedade
+        // Se não for rascunho e estiver tentando enviar todos os campos obrigatórios,
+        // adiciona regras de obrigatoriedade apenas para os campos presentes na requisição
         if (!$isRascunho) {
-            $rules = array_merge($rules, [
-                'dormitorios' => 'required|integer|min:0|max:20',
-                'banheiros' => 'required|integer|min:0|max:20',
-            ]);
+            // Verificamos se os campos obrigatórios estão presentes na requisição
+            $camposObrigatorios = ['dormitorios', 'banheiros'];
+            $todosObrigatoriosPresentes = true;
+            
+            foreach ($camposObrigatorios as $campo) {
+                if (!request()->has($campo)) {
+                    $todosObrigatoriosPresentes = false;
+                    break;
+                }
+            }
+            
+            // Se todos os campos obrigatórios estiverem presentes, aplicamos as regras de obrigatoriedade
+            if ($todosObrigatoriosPresentes) {
+                $rules = array_merge($rules, [
+                    'dormitorios' => 'required|integer|min:0|max:20',
+                    'banheiros' => 'required|integer|min:0|max:20',
+                ]);
+            }
         }
         
         return $rules;
