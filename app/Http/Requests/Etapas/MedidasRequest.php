@@ -58,16 +58,18 @@ class MedidasRequest
         // Usando 'sometimes' para garantir que apenas os campos enviados sejam validados
         $rules = [
             'area_construida' => 'sometimes|nullable|numeric|min:0',
+            'unidade_medida_area_construida' => 'sometimes|string|in:m²,ha',
             'area_privativa' => 'sometimes|nullable|numeric|min:0',
+            'unidade_medida_area_privativa' => 'sometimes|string|in:m²,ha',
             'area_total' => 'sometimes|nullable|numeric|min:0',
-            'unidade_medida' => 'sometimes|string|in:m2,ha,alq',
+            'unidade_medida_area_total' => 'sometimes|string|in:m²,ha',
         ];
         
         // Se não for rascunho e estiver tentando enviar todos os campos obrigatórios,
         // adiciona regras de obrigatoriedade apenas para os campos presentes na requisição
         if (!$isRascunho) {
             // Verificamos se os campos obrigatórios estão presentes na requisição
-            $camposObrigatorios = ['area_total', 'unidade_medida'];
+            $camposObrigatorios = ['area_total', 'unidade_medida_area_total'];
             $todosObrigatoriosPresentes = true;
             
             foreach ($camposObrigatorios as $campo) {
@@ -81,7 +83,7 @@ class MedidasRequest
             if ($todosObrigatoriosPresentes) {
                 $rules = array_merge($rules, [
                     'area_total' => 'required|numeric|min:0',
-                    'unidade_medida' => 'required|string|in:m2,ha,alq',
+                    'unidade_medida_area_total' => 'required|string|in:m²,ha',
                 ]);
             }
         }
@@ -107,8 +109,12 @@ class MedidasRequest
             'area_total.numeric' => 'A área total deve ser um valor numérico.',
             'area_total.min' => 'A área total não pode ser negativa.',
             
-            'unidade_medida.required' => 'A unidade de medida é obrigatória.',
-            'unidade_medida.in' => 'A unidade de medida deve ser m² (metros quadrados), ha (hectares) ou alq (alqueires).',
+            'unidade_medida_area_construida.in' => 'A unidade de medida da área construída deve ser m² (metros quadrados) ou ha (hectares).',
+            
+            'unidade_medida_area_privativa.in' => 'A unidade de medida da área privativa deve ser m² (metros quadrados) ou ha (hectares).',
+            
+            'unidade_medida_area_total.required' => 'A unidade de medida da área total é obrigatória.',
+            'unidade_medida_area_total.in' => 'A unidade de medida da área total deve ser m² (metros quadrados) ou ha (hectares).',
         ];
     }
 }

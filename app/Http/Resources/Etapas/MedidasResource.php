@@ -17,12 +17,14 @@ class MedidasResource extends JsonResource
         return [
             'id' => $this->id,
             'area_total' => $this->area_total,
+            'unidade_medida_area_total' => $this->unidade_medida_area_total,
             'area_privativa' => $this->area_privativa,
+            'unidade_medida_area_privativa' => $this->unidade_medida_area_privativa,
             'area_construida' => $this->area_construida,
-            'unidade_medida' => $this->unidade_medida,
-            'area_total_formatada' => $this->formatarArea($this->area_total),
-            'area_privativa_formatada' => $this->formatarArea($this->area_privativa),
-            'area_construida_formatada' => $this->formatarArea($this->area_construida),
+            'unidade_medida_area_construida' => $this->unidade_medida_area_construida,
+            'area_total_formatada' => $this->formatarArea($this->area_total, $this->unidade_medida_area_total),
+            'area_privativa_formatada' => $this->formatarArea($this->area_privativa, $this->unidade_medida_area_privativa),
+            'area_construida_formatada' => $this->formatarArea($this->area_construida, $this->unidade_medida_area_construida),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
@@ -32,16 +34,17 @@ class MedidasResource extends JsonResource
      * Formata a área de acordo com a unidade de medida.
      *
      * @param float|null $area
+     * @param string|null $unidade
      * @return string|null
      */
-    protected function formatarArea($area)
+    protected function formatarArea($area, $unidade = null)
     {
         if ($area === null) {
             return null;
         }
         
-        $unidade = $this->unidade_medida ?? 'm2';
-        $simbolo = $unidade === 'm2' ? 'm²' : ($unidade === 'ha' ? 'ha' : 'alq');
+        $unidade = $unidade ?? 'm²';
+        $simbolo = $unidade === 'm²' ? 'm²' : 'ha';
         
         return number_format($area, 2, ',', '.') . ' ' . $simbolo;
     }
