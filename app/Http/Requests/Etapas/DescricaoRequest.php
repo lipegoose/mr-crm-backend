@@ -39,6 +39,7 @@ class DescricaoRequest
     protected function rules(bool $isRascunho = false)
     {
         // Regras básicas que se aplicam mesmo em modo rascunho
+        // Usando 'sometimes' para garantir que apenas os campos enviados sejam validados
         $rules = [
             'titulo_anuncio' => 'sometimes|nullable|string|max:200',
             'mostrar_titulo' => 'sometimes|boolean',
@@ -49,12 +50,27 @@ class DescricaoRequest
             'gerar_descricao_automatica' => 'sometimes|boolean',
         ];
         
-        // Se não for rascunho, adiciona regras de obrigatoriedade
+        // Se não for rascunho e estiver tentando enviar todos os campos obrigatórios,
+        // adiciona regras de obrigatoriedade apenas para os campos presentes na requisição
         if (!$isRascunho) {
-            $rules = array_merge($rules, [
-                'titulo_anuncio' => 'required|string|max:200',
-                'descricao' => 'required|string|max:5000',
-            ]);
+            // Verificamos se os campos obrigatórios estão presentes na requisição
+            $camposObrigatorios = ['titulo_anuncio', 'descricao'];
+            $todosObrigatoriosPresentes = true;
+            
+            foreach ($camposObrigatorios as $campo) {
+                if (!request()->has($campo)) {
+                    $todosObrigatoriosPresentes = false;
+                    break;
+                }
+            }
+            
+            // Se todos os campos obrigatórios estiverem presentes, aplicamos as regras de obrigatoriedade
+            if ($todosObrigatoriosPresentes) {
+                $rules = array_merge($rules, [
+                    'titulo_anuncio' => 'required|string|max:200',
+                    'descricao' => 'required|string|max:5000',
+                ]);
+            }
         }
         
         return $rules;
