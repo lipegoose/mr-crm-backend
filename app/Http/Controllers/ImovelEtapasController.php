@@ -36,6 +36,7 @@ use App\Models\Caracteristica;
 use App\Models\Imovel;
 use App\Models\ImovelDetalhe;
 use App\Models\Proximidade;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -439,14 +440,48 @@ class ImovelEtapasController extends Controller
             
             // Se houve alteração de preço, registrar no histórico
             if ($precoAlterado) {
+                // Determinar qual tipo de negócio foi alterado
+                $tipoNegocio = null;
+                $valor = null;
+                
+                if (isset($dados['preco_venda']) && $imovel->preco_venda != $dados['preco_venda']) {
+                    $tipoNegocio = 'VENDA';
+                    $valor = $dados['preco_venda'];
+                } elseif (isset($dados['preco_aluguel']) && $imovel->preco_aluguel != $dados['preco_aluguel']) {
+                    $tipoNegocio = 'ALUGUEL';
+                    $valor = $dados['preco_aluguel'];
+                } elseif (isset($dados['preco_temporada']) && $imovel->preco_temporada != $dados['preco_temporada']) {
+                    $tipoNegocio = 'TEMPORADA';
+                    $valor = $dados['preco_temporada'];
+                }
+                
+                // Se não foi identificado um tipo de negócio específico, usar o tipo atual do imóvel
+                if (!$tipoNegocio) {
+                    $tipoNegocio = $imovel->tipo_negocio === 'VENDA_ALUGUEL' ? 'VENDA' : $imovel->tipo_negocio;
+                    
+                    // Determinar o valor com base no tipo de negócio
+                    if ($tipoNegocio === 'VENDA') {
+                        $valor = $dados['preco_venda'] ?? $imovel->preco_venda;
+                    } elseif ($tipoNegocio === 'ALUGUEL') {
+                        $valor = $dados['preco_aluguel'] ?? $imovel->preco_aluguel;
+                    } elseif ($tipoNegocio === 'TEMPORADA') {
+                        $valor = $dados['preco_temporada'] ?? $imovel->preco_temporada;
+                    }
+                }
+                
+                // Criar o registro no histórico
                 $imovel->precosHistorico()->create([
-                    'preco_venda' => $dados['preco_venda'] ?? $imovel->preco_venda,
-                    'preco_aluguel' => $dados['preco_aluguel'] ?? $imovel->preco_aluguel,
-                    'preco_temporada' => $dados['preco_temporada'] ?? $imovel->preco_temporada,
-                    'preco_condominio' => $dados['preco_condominio'] ?? $imovel->preco_condominio,
-                    'preco_iptu' => $dados['preco_iptu'] ?? $imovel->preco_iptu,
+                    'tipo_negocio' => $tipoNegocio,
+                    'valor' => $valor,
+                    'data_inicio' => Carbon::today()->format('Y-m-d'),
                     'motivo' => $request->input('motivo_alteracao') ?? 'Atualização pelo wizard',
-                    'usuario_id' => auth()->id(),
+                    'observacao' => 'Preço atualizado via API. Valores: ' . 
+                        (isset($dados['preco_venda']) ? 'Venda: ' . $dados['preco_venda'] . ' ' : '') .
+                        (isset($dados['preco_aluguel']) ? 'Aluguel: ' . $dados['preco_aluguel'] . ' ' : '') .
+                        (isset($dados['preco_temporada']) ? 'Temporada: ' . $dados['preco_temporada'] . ' ' : '') .
+                        (isset($dados['preco_condominio']) ? 'Condomínio: ' . $dados['preco_condominio'] . ' ' : '') .
+                        (isset($dados['preco_iptu']) ? 'IPTU: ' . $dados['preco_iptu'] : ''),
+                    'created_by' => auth()->id(),
                 ]);
             }
             
