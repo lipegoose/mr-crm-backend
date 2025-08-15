@@ -53,13 +53,28 @@ class LocalizacaoRequest
             'longitude' => 'sometimes|nullable|numeric|between:-180,180',
         ];
         
-        // Se não for rascunho, adiciona regras de obrigatoriedade
+        // Se não for rascunho e estiver tentando enviar todos os campos obrigatórios,
+        // adiciona regras de obrigatoriedade apenas para os campos presentes na requisição
         if (!$isRascunho) {
-            $rules = array_merge($rules, [
-                'uf' => 'required|string|size:2',
-                'cidade' => 'required|string|max:100',
-                'bairro' => 'required|string|max:100',
-            ]);
+            // Verificamos se os campos obrigatórios estão presentes na requisição
+            $camposObrigatorios = ['uf', 'cidade', 'bairro'];
+            $todosObrigatoriosPresentes = true;
+            
+            foreach ($camposObrigatorios as $campo) {
+                if (!request()->has($campo)) {
+                    $todosObrigatoriosPresentes = false;
+                    break;
+                }
+            }
+            
+            // Se todos os campos obrigatórios estiverem presentes, aplicamos as regras de obrigatoriedade
+            if ($todosObrigatoriosPresentes) {
+                $rules = array_merge($rules, [
+                    'uf' => 'required|string|size:2',
+                    'cidade' => 'required|string|max:100',
+                    'bairro' => 'required|string|max:100',
+                ]);
+            }
         }
         
         return $rules;

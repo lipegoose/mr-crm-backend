@@ -56,11 +56,26 @@ class ProprietarioRequest
             'anotacoes_privativas' => 'sometimes|nullable|string|max:5000',
         ];
         
-        // Se não for rascunho, adiciona regras de obrigatoriedade
+        // Se não for rascunho e estiver tentando enviar todos os campos obrigatórios,
+        // adiciona regras de obrigatoriedade apenas para os campos presentes na requisição
         if (!$isRascunho) {
-            $rules = array_merge($rules, [
-                'proprietario_id' => 'required|integer|exists:pessoas,id',
-            ]);
+            // Verificamos se os campos obrigatórios estão presentes na requisição
+            $camposObrigatorios = ['proprietario_id'];
+            $todosObrigatoriosPresentes = true;
+            
+            foreach ($camposObrigatorios as $campo) {
+                if (!request()->has($campo)) {
+                    $todosObrigatoriosPresentes = false;
+                    break;
+                }
+            }
+            
+            // Se todos os campos obrigatórios estiverem presentes, aplicamos as regras de obrigatoriedade
+            if ($todosObrigatoriosPresentes) {
+                $rules = array_merge($rules, [
+                    'proprietario_id' => 'required|integer|exists:pessoas,id',
+                ]);
+            }
         }
         
         return $rules;

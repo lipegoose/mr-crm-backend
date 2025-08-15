@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -60,9 +61,11 @@ class Imovel extends Model
         'dependencia_servico',
         'copa',
         'area_construida',
+        'unidade_medida_area_construida',
         'area_privativa',
+        'unidade_medida_area_privativa',
         'area_total',
-        'unidade_medida',
+        'unidade_medida_area_total',
         'tipo_negocio',
         'preco_venda',
         'preco_aluguel',
@@ -388,7 +391,7 @@ class Imovel extends Model
         return $this->precosHistorico()->create([
             'tipo_negocio' => $tipoNegocio,
             'valor' => $valor,
-            'data_inicio' => now()->format('Y-m-d'),
+            'data_inicio' => Carbon::today()->format('Y-m-d'),
             'motivo' => $motivo ?: ($valorAnterior ? 
                 "Alteração de preço de " . number_format($valorAnterior, 2, ',', '.') . 
                 " para " . number_format($valor, 2, ',', '.') : 
@@ -409,7 +412,7 @@ class Imovel extends Model
             ->where('tipo_negocio', $tipoNegocio)
             ->whereNull('data_fim')
             ->update([
-                'data_fim' => now()->format('Y-m-d'),
+                'data_fim' => Carbon::today()->format('Y-m-d'),
                 'updated_by' => Auth::id() ?? $this->updated_by,
             ]);
     }
@@ -554,12 +557,12 @@ class Imovel extends Model
         return $query->where('publicar_site', true)
             ->where('status', 'ATIVO')
             ->where(function ($q) {
-                $hoje = now()->format('Y-m-d');
+                $hoje = Carbon::today()->format('Y-m-d');
                 $q->whereNull('data_publicacao')
                   ->orWhere('data_publicacao', '<=', $hoje);
             })
             ->where(function ($q) {
-                $hoje = now()->format('Y-m-d');
+                $hoje = Carbon::today()->format('Y-m-d');
                 $q->whereNull('data_expiracao')
                   ->orWhere('data_expiracao', '>=', $hoje);
             });

@@ -36,6 +36,7 @@ use App\Models\Caracteristica;
 use App\Models\Imovel;
 use App\Models\ImovelDetalhe;
 use App\Models\Proximidade;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -192,7 +193,11 @@ class ImovelEtapasController extends Controller
             // Atualizar imóvel
             DB::beginTransaction();
             
-            $imovel->update($dados);
+            // Usar fill para atualizar apenas os campos enviados na requisição
+            $imovel->fill($dados);
+            
+            // Salvar as alterações
+            $imovel->save();
             
             DB::commit();
             
@@ -268,7 +273,11 @@ class ImovelEtapasController extends Controller
             // Atualizar imóvel
             DB::beginTransaction();
             
-            $imovel->update($dados);
+            // Usar fill para atualizar apenas os campos enviados na requisição
+            $imovel->fill($dados);
+            
+            // Salvar as alterações
+            $imovel->save();
             
             DB::commit();
             
@@ -341,7 +350,11 @@ class ImovelEtapasController extends Controller
             // Atualizar imóvel
             DB::beginTransaction();
             
-            $imovel->update($dados);
+            // Usar fill para atualizar apenas os campos enviados na requisição
+            $imovel->fill($dados);
+            
+            // Salvar as alterações
+            $imovel->save();
             
             DB::commit();
             
@@ -427,18 +440,56 @@ class ImovelEtapasController extends Controller
             
             // Se houve alteração de preço, registrar no histórico
             if ($precoAlterado) {
+                // Determinar qual tipo de negócio foi alterado
+                $tipoNegocio = null;
+                $valor = null;
+                
+                if (isset($dados['preco_venda']) && $imovel->preco_venda != $dados['preco_venda']) {
+                    $tipoNegocio = 'VENDA';
+                    $valor = $dados['preco_venda'];
+                } elseif (isset($dados['preco_aluguel']) && $imovel->preco_aluguel != $dados['preco_aluguel']) {
+                    $tipoNegocio = 'ALUGUEL';
+                    $valor = $dados['preco_aluguel'];
+                } elseif (isset($dados['preco_temporada']) && $imovel->preco_temporada != $dados['preco_temporada']) {
+                    $tipoNegocio = 'TEMPORADA';
+                    $valor = $dados['preco_temporada'];
+                }
+                
+                // Se não foi identificado um tipo de negócio específico, usar o tipo atual do imóvel
+                if (!$tipoNegocio) {
+                    $tipoNegocio = $imovel->tipo_negocio === 'VENDA_ALUGUEL' ? 'VENDA' : $imovel->tipo_negocio;
+                    
+                    // Determinar o valor com base no tipo de negócio
+                    if ($tipoNegocio === 'VENDA') {
+                        $valor = $dados['preco_venda'] ?? $imovel->preco_venda;
+                    } elseif ($tipoNegocio === 'ALUGUEL') {
+                        $valor = $dados['preco_aluguel'] ?? $imovel->preco_aluguel;
+                    } elseif ($tipoNegocio === 'TEMPORADA') {
+                        $valor = $dados['preco_temporada'] ?? $imovel->preco_temporada;
+                    }
+                }
+                
+                // Criar o registro no histórico
                 $imovel->precosHistorico()->create([
-                    'preco_venda' => $dados['preco_venda'] ?? $imovel->preco_venda,
-                    'preco_aluguel' => $dados['preco_aluguel'] ?? $imovel->preco_aluguel,
-                    'preco_temporada' => $dados['preco_temporada'] ?? $imovel->preco_temporada,
-                    'preco_condominio' => $dados['preco_condominio'] ?? $imovel->preco_condominio,
-                    'preco_iptu' => $dados['preco_iptu'] ?? $imovel->preco_iptu,
+                    'tipo_negocio' => $tipoNegocio,
+                    'valor' => $valor,
+                    'data_inicio' => Carbon::today()->format('Y-m-d'),
                     'motivo' => $request->input('motivo_alteracao') ?? 'Atualização pelo wizard',
-                    'usuario_id' => auth()->id(),
+                    'observacao' => 'Preço atualizado via API. Valores: ' . 
+                        (isset($dados['preco_venda']) ? 'Venda: ' . $dados['preco_venda'] . ' ' : '') .
+                        (isset($dados['preco_aluguel']) ? 'Aluguel: ' . $dados['preco_aluguel'] . ' ' : '') .
+                        (isset($dados['preco_temporada']) ? 'Temporada: ' . $dados['preco_temporada'] . ' ' : '') .
+                        (isset($dados['preco_condominio']) ? 'Condomínio: ' . $dados['preco_condominio'] . ' ' : '') .
+                        (isset($dados['preco_iptu']) ? 'IPTU: ' . $dados['preco_iptu'] : ''),
+                    'created_by' => auth()->id(),
                 ]);
             }
             
-            $imovel->update($dados);
+            // Usar fill para atualizar apenas os campos enviados na requisição
+            $imovel->fill($dados);
+            
+            // Salvar as alterações
+            $imovel->save();
             
             DB::commit();
             
@@ -610,9 +661,13 @@ class ImovelEtapasController extends Controller
             
             // Atualizar condomínio_id no imóvel
             if (isset($dados['condominio_id'])) {
-                $imovel->update([
+                // Usar fill para atualizar apenas os campos enviados na requisição
+                $imovel->fill([
                     'condominio_id' => $dados['condominio_id'],
                 ]);
+                
+                // Salvar as alterações
+                $imovel->save();
             }
             
             // Se tem condomínio, atualizar suas características
@@ -620,11 +675,14 @@ class ImovelEtapasController extends Controller
                 $condominio = $imovel->condominio;
                 
                 // Atualizar características existentes do condomínio
-                if (isset($dados['caracteristicas_condominio'])) {
+                // Sempre fazer detach primeiro, independentemente se há novas características ou não
+                if (isset($dados['caracteristicas'])) {
+                    // Remover todas as características existentes
                     $condominio->caracteristicas()->detach();
                     
-                    if (!empty($dados['caracteristicas_condominio'])) {
-                        $condominio->caracteristicas()->attach($dados['caracteristicas_condominio']);
+                    // Adicionar as características selecionadas (se houver)
+                    if (!empty($dados['caracteristicas'])) {
+                        $condominio->caracteristicas()->attach($dados['caracteristicas']);
                     }
                 }
                 
@@ -639,6 +697,9 @@ class ImovelEtapasController extends Controller
                         $condominio->caracteristicas()->attach($caracteristica->id);
                     }
                 }
+            } else if (isset($dados['caracteristicas']) || isset($dados['novas_caracteristicas_condominio'])) {
+                // Se não tem condomínio mas enviou características, retornar erro
+                throw new \Exception('Não é possível atualizar características sem um condomínio associado ao imóvel.');
             }
             
             DB::commit();
@@ -715,7 +776,11 @@ class ImovelEtapasController extends Controller
             // Atualizar imóvel
             DB::beginTransaction();
             
-            $imovel->update($dados);
+            // Usar fill para atualizar apenas os campos enviados na requisição
+            $imovel->fill($dados);
+            
+            // Salvar as alterações
+            $imovel->save();
             
             DB::commit();
             
@@ -969,7 +1034,11 @@ class ImovelEtapasController extends Controller
             ]));
             
             if (!empty($camposImovel)) {
-                $imovel->update($camposImovel);
+                // Usar fill para atualizar apenas os campos enviados na requisição
+                $imovel->fill($camposImovel);
+                
+                // Salvar as alterações
+                $imovel->save();
             }
             
             DB::commit();
@@ -1050,7 +1119,11 @@ class ImovelEtapasController extends Controller
             ]));
             
             if (!empty($camposDetalhes)) {
-                $imovel->detalhes->update($camposDetalhes);
+                // Usar fill para atualizar apenas os campos enviados na requisição
+                $imovel->detalhes->fill($camposDetalhes);
+                
+                // Salvar as alterações
+                $imovel->detalhes->save();
             }
             
             // Atualizar vídeos
@@ -1087,11 +1160,18 @@ class ImovelEtapasController extends Controller
                     foreach ($dados['plantas'] as $index => $planta) {
                         if (isset($planta['id']) && $planta['id']) {
                             // Atualizar planta existente
-                            $imovel->plantas()->where('id', $planta['id'])->update([
-                                'titulo' => $planta['titulo'] ?? null,
-                                'descricao' => $planta['descricao'] ?? null,
-                                'ordem' => $index + 1,
-                            ]);
+                            $plantaModel = $imovel->plantas()->where('id', $planta['id'])->first();
+                            if ($plantaModel) {
+                                // Usar fill para atualizar apenas os campos enviados na requisição
+                                $plantaModel->fill([
+                                    'titulo' => $planta['titulo'] ?? null,
+                                    'descricao' => $planta['descricao'] ?? null,
+                                    'ordem' => $index + 1,
+                                ]);
+                                
+                                // Salvar as alterações
+                                $plantaModel->save();
+                            }
                         } else if (isset($planta['caminho']) && $planta['caminho']) {
                             // Adicionar nova planta
                             $imovel->plantas()->create([
@@ -1203,19 +1283,31 @@ class ImovelEtapasController extends Controller
                     
                     if ($temPrincipal) {
                         // Remover flag principal de todas as imagens
-                        $imovel->imagens()->update(['principal' => false]);
+                        // Buscar todas as imagens e atualizá-las individualmente para manter consistência
+                        // com a abordagem de atualizações parciais
+                        foreach ($imovel->imagens as $imagem) {
+                            $imagem->fill(['principal' => false]);
+                            $imagem->save();
+                        }
                     }
                     
                     // Processar cada imagem
                     foreach ($dados['imagens'] as $index => $imagem) {
                         if (isset($imagem['id']) && $imagem['id']) {
                             // Atualizar imagem existente
-                            $imovel->imagens()->where('id', $imagem['id'])->update([
-                                'titulo' => $imagem['titulo'] ?? null,
-                                'descricao' => $imagem['descricao'] ?? null,
-                                'ordem' => $index + 1,
-                                'principal' => isset($imagem['principal']) ? (bool) $imagem['principal'] : false,
-                            ]);
+                            $imagemModel = $imovel->imagens()->where('id', $imagem['id'])->first();
+                            if ($imagemModel) {
+                                // Usar fill para atualizar apenas os campos enviados na requisição
+                                $imagemModel->fill([
+                                    'titulo' => $imagem['titulo'] ?? null,
+                                    'descricao' => $imagem['descricao'] ?? null,
+                                    'ordem' => $index + 1,
+                                    'principal' => isset($imagem['principal']) ? (bool) $imagem['principal'] : false,
+                                ]);
+                                
+                                // Salvar as alterações
+                                $imagemModel->save();
+                            }
                         } else if (isset($imagem['caminho']) && $imagem['caminho']) {
                             // Adicionar nova imagem
                             $imovel->imagens()->create([
@@ -1232,7 +1324,11 @@ class ImovelEtapasController extends Controller
                     if (!$temPrincipal && $imovel->imagens()->count() > 0) {
                         $primeiraImagem = $imovel->imagens()->orderBy('ordem')->first();
                         if ($primeiraImagem) {
-                            $primeiraImagem->update(['principal' => true]);
+                            // Usar fill para atualizar apenas os campos enviados na requisição
+                            $primeiraImagem->fill(['principal' => true]);
+                            
+                            // Salvar as alterações
+                            $primeiraImagem->save();
                         }
                     }
                 }
@@ -1318,7 +1414,11 @@ class ImovelEtapasController extends Controller
             ]));
             
             if (!empty($camposImovel)) {
-                $imovel->update($camposImovel);
+                // Usar fill para atualizar apenas os campos enviados na requisição
+                $imovel->fill($camposImovel);
+                
+                // Salvar as alterações
+                $imovel->save();
             }
             
             // Atualizar configurações de exibição nos detalhes
@@ -1419,7 +1519,11 @@ class ImovelEtapasController extends Controller
             ]));
             
             if (!empty($camposImovel)) {
-                $imovel->update($camposImovel);
+                // Usar fill para atualizar apenas os campos enviados na requisição
+                $imovel->fill($camposImovel);
+                
+                // Salvar as alterações
+                $imovel->save();
             }
             
             // Atualizar campos de detalhes
@@ -1428,7 +1532,11 @@ class ImovelEtapasController extends Controller
             ]));
             
             if (!empty($camposDetalhes)) {
-                $imovel->detalhes->update($camposDetalhes);
+                // Usar fill para atualizar apenas os campos enviados na requisição
+                $imovel->detalhes->fill($camposDetalhes);
+                
+                // Salvar as alterações
+                $imovel->detalhes->save();
             }
             
             DB::commit();
@@ -1509,7 +1617,11 @@ class ImovelEtapasController extends Controller
             ]));
             
             if (!empty($camposDetalhes)) {
-                $imovel->detalhes->update($camposDetalhes);
+                // Usar fill para atualizar apenas os campos enviados na requisição
+                $imovel->detalhes->fill($camposDetalhes);
+                
+                // Salvar as alterações
+                $imovel->detalhes->save();
             }
             
             DB::commit();
@@ -1602,7 +1714,11 @@ class ImovelEtapasController extends Controller
             unset($dados['corretor_id']);
             
             // Atualizar dados privativos
-            $imovel->detalhes->update($dados);
+            // Usar fill para atualizar apenas os campos enviados na requisição
+            $imovel->detalhes->fill($dados);
+            
+            // Salvar as alterações
+            $imovel->detalhes->save();
             
             DB::commit();
             

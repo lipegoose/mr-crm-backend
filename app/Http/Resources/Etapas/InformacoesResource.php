@@ -47,6 +47,7 @@ class InformacoesResource extends JsonResource
             'escriturado' => (bool) $this->escriturado,
             'esquina' => (bool) $this->esquina,
             'averbado' => (bool) $this->averbado,
+            'isCondominio' => $this->condominio_id ? 'sim' : 'nao',
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

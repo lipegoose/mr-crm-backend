@@ -27,24 +27,31 @@ class PrecoRequest
         $validator->after(function ($validator) use ($request) {
             $tipoNegocio = $request->input('tipo_negocio');
             
+            // Se não estiver enviando o tipo de negócio, não validamos os preços
+            // para permitir atualizações parciais
+            if (!$tipoNegocio) {
+                return;
+            }
+            
             // Verificar se pelo menos um preço foi informado de acordo com o tipo de negócio
-            if ($tipoNegocio === 'VENDA' && empty($request->input('preco_venda'))) {
+            // Apenas se estiver enviando o campo de preço correspondente
+            if ($tipoNegocio === 'VENDA' && $request->has('preco_venda') && empty($request->input('preco_venda'))) {
                 $validator->errors()->add('preco_venda', 'O preço de venda é obrigatório para imóveis à venda.');
             }
             
-            if ($tipoNegocio === 'ALUGUEL' && empty($request->input('preco_aluguel'))) {
+            if ($tipoNegocio === 'ALUGUEL' && $request->has('preco_aluguel') && empty($request->input('preco_aluguel'))) {
                 $validator->errors()->add('preco_aluguel', 'O preço de aluguel é obrigatório para imóveis para locação.');
             }
             
-            if ($tipoNegocio === 'TEMPORADA' && empty($request->input('preco_temporada'))) {
+            if ($tipoNegocio === 'TEMPORADA' && $request->has('preco_temporada') && empty($request->input('preco_temporada'))) {
                 $validator->errors()->add('preco_temporada', 'O preço de temporada é obrigatório para imóveis para temporada.');
             }
             
             if ($tipoNegocio === 'VENDA_ALUGUEL') {
-                if (empty($request->input('preco_venda'))) {
+                if ($request->has('preco_venda') && empty($request->input('preco_venda'))) {
                     $validator->errors()->add('preco_venda', 'O preço de venda é obrigatório para imóveis à venda e locação.');
                 }
-                if (empty($request->input('preco_aluguel'))) {
+                if ($request->has('preco_aluguel') && empty($request->input('preco_aluguel'))) {
                     $validator->errors()->add('preco_aluguel', 'O preço de aluguel é obrigatório para imóveis à venda e locação.');
                 }
             }
@@ -66,6 +73,7 @@ class PrecoRequest
     protected function rules(bool $isRascunho = false)
     {
         // Regras básicas que se aplicam mesmo em modo rascunho
+        // Usando 'sometimes' para garantir que apenas os campos enviados sejam validados
         $rules = [
             'tipo_negocio' => 'sometimes|string|in:VENDA,ALUGUEL,TEMPORADA,VENDA_ALUGUEL',
             'preco_venda' => 'sometimes|nullable|numeric|min:0',
@@ -87,11 +95,26 @@ class PrecoRequest
             'motivo_alteracao' => 'sometimes|nullable|string|max:255',
         ];
         
-        // Se não for rascunho, adiciona regras de obrigatoriedade
+        // Se não for rascunho e estiver tentando enviar todos os campos obrigatórios,
+        // adiciona regras de obrigatoriedade apenas para os campos presentes na requisição
         if (!$isRascunho) {
-            $rules = array_merge($rules, [
-                'tipo_negocio' => 'required|string|in:VENDA,ALUGUEL,TEMPORADA,VENDA_ALUGUEL',
-            ]);
+            // Verificamos se os campos obrigatórios estão presentes na requisição
+            $camposObrigatorios = ['tipo_negocio'];
+            $todosObrigatoriosPresentes = true;
+            
+            foreach ($camposObrigatorios as $campo) {
+                if (!request()->has($campo)) {
+                    $todosObrigatoriosPresentes = false;
+                    break;
+                }
+            }
+            
+            // Se todos os campos obrigatórios estiverem presentes, aplicamos as regras de obrigatoriedade
+            if ($todosObrigatoriosPresentes) {
+                $rules = array_merge($rules, [
+                    'tipo_negocio' => 'required|string|in:VENDA,ALUGUEL,TEMPORADA,VENDA_ALUGUEL',
+                ]);
+            }
         }
         
         return $rules;

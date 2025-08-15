@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -178,7 +179,7 @@ class Condominio extends Model
         // Adicionar a característica com auditoria
         $this->caracteristicas()->attach($caracteristica->id, [
             'created_by' => Auth::id() ?? $this->created_by,
-            'created_at' => now(),
+            'created_at' => Carbon::now(),
         ]);
         
         return true;
