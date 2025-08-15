@@ -16,13 +16,13 @@ class CaracteristicasCondominioResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'condominio_id' => $this->condominio_id,
-            'condominio' => $this->whenLoaded('condominio', function () {
-                return [
-                    'id' => $this->condominio->id,
-                    'nome' => $this->condominio->nome,
-                    'endereco' => $this->condominio->formatarEndereco(),
-                    'caracteristicas' => $this->condominio->caracteristicas->map(function ($caracteristica) {
+            'caracteristicas' => $this->whenLoaded('condominio', function () {
+                if (!$this->condominio) {
+                    return [];
+                }
+                
+                return $this->condominio->caracteristicas
+                    ->map(function ($caracteristica) {
                         return [
                             'id' => $caracteristica->id,
                             'nome' => $caracteristica->nome,
@@ -30,8 +30,7 @@ class CaracteristicasCondominioResource extends JsonResource
                             'icone' => $caracteristica->icone,
                             'categoria' => $caracteristica->categoria,
                         ];
-                    }),
-                ];
+                    });
             }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
