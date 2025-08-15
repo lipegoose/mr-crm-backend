@@ -676,13 +676,13 @@ class ImovelEtapasController extends Controller
                 
                 // Atualizar características existentes do condomínio
                 // Sempre fazer detach primeiro, independentemente se há novas características ou não
-                if (isset($dados['caracteristicas_condominio'])) {
+                if (isset($dados['caracteristicas'])) {
                     // Remover todas as características existentes
                     $condominio->caracteristicas()->detach();
                     
                     // Adicionar as características selecionadas (se houver)
-                    if (!empty($dados['caracteristicas_condominio'])) {
-                        $condominio->caracteristicas()->attach($dados['caracteristicas_condominio']);
+                    if (!empty($dados['caracteristicas'])) {
+                        $condominio->caracteristicas()->attach($dados['caracteristicas']);
                     }
                 }
                 
@@ -697,7 +697,7 @@ class ImovelEtapasController extends Controller
                         $condominio->caracteristicas()->attach($caracteristica->id);
                     }
                 }
-            } else if (isset($dados['caracteristicas_condominio']) || isset($dados['novas_caracteristicas_condominio'])) {
+            } else if (isset($dados['caracteristicas']) || isset($dados['novas_caracteristicas_condominio'])) {
                 // Se não tem condomínio mas enviou características, retornar erro
                 throw new \Exception('Não é possível atualizar características sem um condomínio associado ao imóvel.');
             }
