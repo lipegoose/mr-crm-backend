@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             PerfisSeeder::class,
             SituacoesSeeder::class,
             PosicoesSeeder::class,
+            CidadesBairrosSeeder::class,
             // TiposSubtiposSeeder é referência e não precisa ser executado
         ]);
     }
