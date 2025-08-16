@@ -89,16 +89,16 @@ class BairrosController extends Controller
     /**
      * Listar bairros de uma cidade específica
      *
-     * @param int $cidadeId
+     * @param int $cidade_id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function porCidade($cidadeId)
+    public function porCidade($cidade_id)
     {
         // Verificar se a cidade existe
-        $cidade = Cidade::findOrFail($cidadeId);
+        $cidade = Cidade::findOrFail($cidade_id);
         
         $bairros = Bairro::with('cidade')
-            ->porCidade($cidadeId)
+            ->porCidade($cidade_id)
             ->ordenadoPorNome()
             ->get();
         
@@ -122,15 +122,15 @@ class BairrosController extends Controller
     /**
      * Listar bairros de uma cidade específica para componente select
      *
-     * @param int $cidadeId
+     * @param int $cidade_id
      * @return \Illuminate\Http\JsonResponse
      */
-    public function selectPorCidade($cidadeId)
+    public function selectPorCidade($cidade_id)
     {
         // Verificar se a cidade existe
-        $cidade = Cidade::findOrFail($cidadeId);
+        $cidade = Cidade::findOrFail($cidade_id);
         
-        $bairros = Bairro::porCidade($cidadeId)
+        $bairros = Bairro::porCidade($cidade_id)
             ->ordenadoPorNome()
             ->get();
         
