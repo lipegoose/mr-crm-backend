@@ -20,6 +20,8 @@ class LocalizacaoResource extends JsonResource
             'uf' => $this->uf,
             'cidade' => $this->cidade,
             'bairro' => $this->bairro,
+            'cidade_id' => $this->cidade_id,
+            'bairro_id' => $this->bairro_id,
             'logradouro' => $this->logradouro,
             'numero' => $this->numero,
             'complemento' => $this->complemento,

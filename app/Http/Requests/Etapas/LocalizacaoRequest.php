@@ -44,6 +44,8 @@ class LocalizacaoRequest
             'uf' => 'sometimes|nullable|string|size:2',
             'cidade' => 'sometimes|nullable|string|max:100',
             'bairro' => 'sometimes|nullable|string|max:100',
+            'cidade_id' => 'sometimes|nullable|integer|exists:cidades,id',
+            'bairro_id' => 'sometimes|nullable|integer|exists:bairros,id',
             'logradouro' => 'sometimes|nullable|string|max:200',
             'numero' => 'sometimes|nullable|string|max:20',
             'complemento' => 'sometimes|nullable|string|max:100',
@@ -98,6 +100,12 @@ class LocalizacaoRequest
             
             'bairro.required' => 'O bairro é obrigatório.',
             'bairro.max' => 'O bairro não pode ter mais de 100 caracteres.',
+            
+            'cidade_id.integer' => 'O ID da cidade deve ser um número inteiro.',
+            'cidade_id.exists' => 'A cidade selecionada não existe no sistema.',
+            
+            'bairro_id.integer' => 'O ID do bairro deve ser um número inteiro.',
+            'bairro_id.exists' => 'O bairro selecionado não existe no sistema.',
             
             'logradouro.max' => 'O logradouro não pode ter mais de 200 caracteres.',
             

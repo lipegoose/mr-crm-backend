@@ -102,7 +102,10 @@ class ImovelEtapasController extends Controller
         $etapas['preco'] = $this->verificarPrecoCompleto($imovel);
         
         // Verificar etapa Localização
-        $etapas['localizacao'] = !empty($imovel->uf) && !empty($imovel->cidade) && !empty($imovel->bairro);
+        // Considera tanto os campos texto quanto os campos de relação
+        $etapas['localizacao'] = !empty($imovel->uf) && 
+            (!empty($imovel->cidade) || !empty($imovel->cidade_id)) && 
+            (!empty($imovel->bairro) || !empty($imovel->bairro_id));
         
         // Verificar etapa Descrição
         $etapas['descricao'] = $imovel->detalhes && !empty($imovel->detalhes->titulo_anuncio) && !empty($imovel->detalhes->descricao);
@@ -739,6 +742,7 @@ class ImovelEtapasController extends Controller
     {
         try {
             $imovel = $this->verificarImovel($id);
+            $imovel->load(['cidade', 'bairro']);
             
             return response()->json([
                 'success' => true,

@@ -66,6 +66,8 @@ class ImovelRequest extends FormRequest
             'uf' => 'nullable|string|size:2',
             'cidade' => 'nullable|string|max:100',
             'bairro' => 'nullable|string|max:100',
+            'cidade_id' => 'nullable|integer|exists:cidades,id',
+            'bairro_id' => 'nullable|integer|exists:bairros,id',
             'logradouro' => 'nullable|string|max:200',
             'numero' => 'nullable|string|max:20',
             'complemento' => 'nullable|string|max:100',
@@ -125,6 +127,7 @@ class ImovelRequest extends FormRequest
                 'uf' => 'required|string|size:2',
                 'cidade' => 'required|string|max:100',
                 'bairro' => 'required|string|max:100',
+                // Os campos cidade_id e bairro_id permanecem opcionais mesmo para imóveis ativos
                 'logradouro' => 'required|string|max:200',
             ]);
         }
@@ -240,6 +243,8 @@ class ImovelRequest extends FormRequest
             'uf' => 'UF',
             'cidade' => 'cidade',
             'bairro' => 'bairro',
+            'cidade_id' => 'cidade (relação)',
+            'bairro_id' => 'bairro (relação)',
             'logradouro' => 'logradouro',
             'numero' => 'número',
             'complemento' => 'complemento',

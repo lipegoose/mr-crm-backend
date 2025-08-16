@@ -87,6 +87,8 @@ class Imovel extends Model
         'uf',
         'cidade',
         'bairro',
+        'cidade_id',
+        'bairro_id',
         'logradouro',
         'numero',
         'complemento',
@@ -443,6 +445,22 @@ class Imovel extends Model
     public function condominio()
     {
         return $this->belongsTo(Condominio::class);
+    }
+    
+    /**
+     * Cidade à qual o imóvel pertence.
+     */
+    public function cidade()
+    {
+        return $this->belongsTo(Cidade::class);
+    }
+    
+    /**
+     * Bairro ao qual o imóvel pertence.
+     */
+    public function bairro()
+    {
+        return $this->belongsTo(Bairro::class);
     }
     
     /**
