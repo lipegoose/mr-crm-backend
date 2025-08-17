@@ -854,7 +854,7 @@ class ImovelEtapasController extends Controller
                 $dados['bairro_id'] = null;
             }
             // Caso 4: Processar bairro_id quando temos apenas o nome do bairro (não null)
-            elseif (!isset($dados['bairro_id']) && !empty($dados['bairro'])) {
+            elseif (!empty($dados['bairro'])) {
                 // Se temos cidade_id (do payload ou do processamento acima)
                 if (isset($dados['cidade_id']) && $dados['cidade_id'] !== null) {
                     // Buscar bairro pelo nome e cidade_id
