@@ -777,6 +777,9 @@ class ImovelEtapasController extends Controller
             $localizacaoRequest = new LocalizacaoRequest();
             $dados = $localizacaoRequest->validate($request, $isRascunho);
             
+            // Processar busca de cidade_id e bairro_id quando apenas os nomes forem fornecidos
+            $dados = $this->processarCidadeBairro($dados, $imovel);
+            
             // Atualizar imóvel
             DB::beginTransaction();
             
@@ -808,6 +811,78 @@ class ImovelEtapasController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+    
+    /**
+     * Processa os dados de cidade e bairro para buscar os IDs quando apenas os nomes forem fornecidos
+     * ou para definir os IDs como null quando os nomes forem null
+     *
+     * @param array $dados
+     * @param \App\Models\Imovel $imovel
+     * @return array
+     */
+    protected function processarCidadeBairro(array $dados, $imovel)
+    {
+        // Tratar o caso da cidade
+        if (array_key_exists('cidade', $dados)) {
+            // Caso 1: Se cidade for explicitamente null, definir cidade_id como null também
+            if ($dados['cidade'] === null) {
+                $dados['cidade_id'] = null;
+            }
+            // Caso 2: Processar cidade_id quando temos apenas o nome da cidade (não null)
+            elseif (!isset($dados['cidade_id']) && !empty($dados['cidade'])) {
+                // Usar a UF do payload ou a UF atual do imóvel
+                $uf = $dados['uf'] ?? $imovel->uf;
+                
+                if ($uf) {
+                    // Buscar cidade pelo nome e UF
+                    $cidade = \App\Models\Cidade::where('nome', ucwords(mb_strtolower($dados['cidade'])))
+                        ->where('uf', strtoupper($uf))
+                        ->first();
+                    
+                    if ($cidade) {
+                        $dados['cidade_id'] = $cidade->id;
+                    }
+                }
+            }
+        }
+        
+        // Tratar o caso do bairro
+        if (array_key_exists('bairro', $dados)) {
+            // Caso 3: Se bairro for explicitamente null, definir bairro_id como null também
+            if ($dados['bairro'] === null) {
+                $dados['bairro_id'] = null;
+            }
+            // Caso 4: Processar bairro_id quando temos apenas o nome do bairro (não null)
+            elseif (!isset($dados['bairro_id']) && !empty($dados['bairro'])) {
+                // Se temos cidade_id (do payload ou do processamento acima)
+                if (isset($dados['cidade_id']) && $dados['cidade_id'] !== null) {
+                    // Buscar bairro pelo nome e cidade_id
+                    $bairro = \App\Models\Bairro::where('nome', ucwords(mb_strtolower($dados['bairro'])))
+                        ->where('cidade_id', $dados['cidade_id'])
+                        ->first();
+                    
+                    if ($bairro) {
+                        $dados['bairro_id'] = $bairro->id;
+                    }
+                }
+                // Se temos o nome da cidade e UF, mas não temos cidade_id
+                elseif (isset($dados['cidade']) && !empty($dados['cidade']) && isset($dados['uf'])) {
+                    // Buscar ou criar bairro pelo nome, nome da cidade e UF
+                    $resultado = \App\Models\Bairro::buscarOuCriarPorCidadeUf(
+                        $dados['bairro'],
+                        $dados['cidade'],
+                        $dados['uf']
+                    );
+                    
+                    $bairro = $resultado['bairro'];
+                    $dados['bairro_id'] = $bairro->id;
+                    $dados['cidade_id'] = $bairro->cidade_id;
+                }
+            }
+        }
+        
+        return $dados;
     }
     
     /**
