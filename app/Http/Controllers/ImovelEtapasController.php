@@ -855,11 +855,16 @@ class ImovelEtapasController extends Controller
             }
             // Caso 4: Processar bairro_id quando temos apenas o nome do bairro (não null)
             elseif (!empty($dados['bairro'])) {
+                if (!isset($dados['cidade_id']))
+                    $cidade_id = $imovel->cidade_id;
+                else
+                    $cidade_id = $dados['cidade_id'];
+
                 // Se temos cidade_id (do payload ou do processamento acima)
-                if (isset($dados['cidade_id']) && $dados['cidade_id'] !== null) {
+                if (isset($cidade_id) && $cidade_id !== null) {
                     // Buscar bairro pelo nome e cidade_id
                     $bairro = \App\Models\Bairro::where('nome', ucwords(mb_strtolower($dados['bairro'])))
-                        ->where('cidade_id', $dados['cidade_id'])
+                        ->where('cidade_id', $cidade_id)
                         ->first();
                     
                     if ($bairro) {
