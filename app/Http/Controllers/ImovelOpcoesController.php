@@ -201,7 +201,7 @@ class ImovelOpcoesController extends Controller
     {
         try {
             $proximidades = Proximidade::orderBy('nome')
-                ->get(['id', 'nome', 'tipo']);
+                ->get(['id', 'nome', 'sistema']);
             
             return response()->json([
                 'success' => true,
