@@ -26,9 +26,8 @@ class CaracteristicasCondominioResource extends JsonResource
                         return [
                             'id' => $caracteristica->id,
                             'nome' => $caracteristica->nome,
-                            'descricao' => $caracteristica->descricao,
-                            'icone' => $caracteristica->icone,
-                            'categoria' => $caracteristica->categoria,
+                            'sistema' => $caracteristica->sistema,
+                            'escopo' => $caracteristica->escopo,
                         ];
                     }),
                 ];

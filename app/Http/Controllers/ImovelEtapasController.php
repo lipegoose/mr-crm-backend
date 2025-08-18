@@ -918,6 +918,9 @@ class ImovelEtapasController extends Controller
     
     /**
      * Atualiza os dados da etapa Proximidades de um imóvel.
+     * 
+     * Versão MVP: Funciona como a etapa de Características, apenas marcando quais proximidades existem
+     * sem informações de distância. Código relacionado à distância mantido comentado para uso futuro.
      *
      * @param int $id
      * @param \Illuminate\Http\Request $request
@@ -954,6 +957,11 @@ class ImovelEtapasController extends Controller
                 
                 // Adicionar as proximidades enviadas
                 if (!empty($dados['proximidades'])) {
+                    // Versão MVP: Apenas IDs de proximidades, sem distância
+                    $imovel->proximidades()->attach($dados['proximidades']);
+                    
+                    // Código comentado para uso futuro (com distância)
+                    /*
                     foreach ($dados['proximidades'] as $proximidadeId => $info) {
                         $distanciaMetros = null;
                         $distanciaTexto = null;
@@ -970,15 +978,26 @@ class ImovelEtapasController extends Controller
                             'distancia_texto' => $distanciaTexto,
                         ]);
                     }
+                    */
                 }
             }
             
             // Adicionar novas proximidades
             if (isset($dados['novas_proximidades']) && !empty($dados['novas_proximidades'])) {
                 foreach ($dados['novas_proximidades'] as $novaProximidade) {
+                    // Versão MVP: Novas proximidades são strings simples
+                    $proximidade = Proximidade::create([
+                        'nome' => $novaProximidade,
+                        'sistema' => false,
+                    ]);
+                    
+                    $imovel->proximidades()->attach($proximidade->id);
+                    
+                    // Código comentado para uso futuro (com distância)
+                    /*
                     $proximidade = Proximidade::create([
                         'nome' => $novaProximidade['nome'],
-                        'categoria' => $novaProximidade['categoria'] ?? 'OUTROS',
+                        'sistema' => false,
                     ]);
                     
                     $distanciaMetros = null;
@@ -995,6 +1014,7 @@ class ImovelEtapasController extends Controller
                         'distancia_metros' => $distanciaMetros,
                         'distancia_texto' => $distanciaTexto,
                     ]);
+                    */
                 }
             }
             
@@ -1009,6 +1029,7 @@ class ImovelEtapasController extends Controller
                 'data' => new ProximidadesResource($imovel),
             ]);
         } catch (ValidationException $e) {
+            DB::rollBack();
             return response()->json([
                 'success' => false,
                 'message' => 'Erro de validação.',

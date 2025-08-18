@@ -26,10 +26,6 @@ class Proximidade extends Model
      */
     protected $fillable = [
         'nome',
-        'descricao',
-        'icone',
-        'categoria',
-        'ordem',
         'sistema',
         'created_by',
         'updated_by',
@@ -42,7 +38,6 @@ class Proximidade extends Model
      */
     protected $casts = [
         'sistema' => 'boolean',
-        'ordem' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',

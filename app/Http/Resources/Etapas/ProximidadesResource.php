@@ -4,6 +4,12 @@ namespace App\Http\Resources\Etapas;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * Recurso para a etapa de Proximidades
+ * 
+ * Atualizado para MVP: funcionamento simplificado sem distância, apenas marcação de proximidades
+ * Código relacionado à distância mantido comentado para implementação futura
+ */
 class ProximidadesResource extends JsonResource
 {
     /**
@@ -18,16 +24,27 @@ class ProximidadesResource extends JsonResource
             'id' => $this->id,
             'proximidades' => $this->whenLoaded('proximidades', function () {
                 return $this->proximidades->map(function ($proximidade) {
-                    return [
+                    // Versão MVP: Sem informações de distância
+                    $dados = [
                         'id' => $proximidade->id,
                         'nome' => $proximidade->nome,
-                        'descricao' => $proximidade->descricao,
-                        'icone' => $proximidade->icone,
-                        'categoria' => $proximidade->categoria,
-                        'distancia_metros' => $proximidade->pivot->distancia_metros,
-                        'distancia_texto' => $proximidade->pivot->distancia_texto,
-                        'distancia_formatada' => $this->formatarDistancia($proximidade->pivot->distancia_metros, $proximidade->pivot->distancia_texto),
+                        'sistema' => $proximidade->sistema,
                     ];
+                    
+                    // Adicionar informações de distância se existirem (para compatibilidade)
+                    if (isset($proximidade->pivot->distancia_metros)) {
+                        $dados['distancia_metros'] = $proximidade->pivot->distancia_metros;
+                    }
+                    
+                    if (isset($proximidade->pivot->distancia_texto)) {
+                        $dados['distancia_texto'] = $proximidade->pivot->distancia_texto;
+                        $dados['distancia_formatada'] = $this->formatarDistancia(
+                            $proximidade->pivot->distancia_metros ?? null, 
+                            $proximidade->pivot->distancia_texto
+                        );
+                    }
+                    
+                    return $dados;
                 });
             }),
             'mostrar_proximidades' => (bool) ($this->detalhes->config_exibicao ? 

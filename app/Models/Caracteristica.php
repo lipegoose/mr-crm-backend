@@ -25,10 +25,7 @@ class Caracteristica extends Model
      */
     protected $fillable = [
         'nome',
-        'descricao',
         'escopo',
-        'icone',
-        'ordem',
         'sistema',
         'created_by',
         'updated_by',
@@ -41,7 +38,6 @@ class Caracteristica extends Model
      */
     protected $casts = [
         'sistema' => 'boolean',
-        'ordem' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
