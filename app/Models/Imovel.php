@@ -468,7 +468,7 @@ class Imovel extends Model
      */
     public function detalhes()
     {
-        return $this->hasOne(ImovelDetalhe::class, 'id');
+        return $this->hasOne(ImovelDetalhe::class, 'imovel_id');
     }
     
     /**

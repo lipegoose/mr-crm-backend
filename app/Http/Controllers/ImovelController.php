@@ -233,7 +233,7 @@ class ImovelController extends Controller
             
             // Criar registro de detalhes vazio
             $detalhes = new ImovelDetalhe();
-            $detalhes->id = $imovel->id;
+            $detalhes->imovel_id = $imovel->id;
             $detalhes->created_by = Auth::id();
             $detalhes->save();
             
@@ -311,7 +311,7 @@ class ImovelController extends Controller
             // Criar detalhes do imóvel
             $detalhesOriginal = $imovelOriginal->detalhes;
             $novosDetalhes = new ImovelDetalhe();
-            $novosDetalhes->id = $novoImovel->id;
+            $novosDetalhes->imovel_id = $novoImovel->id;
             
             // Copiar atributos dos detalhes
             if ($detalhesOriginal) {
@@ -450,9 +450,12 @@ class ImovelController extends Controller
             
             // Atualizar detalhes do imóvel se fornecidos
             if ($request->has('detalhes')) {
-                $detalhes = ImovelDetalhe::findOrNew($imovel->id);
+                $detalhes = ImovelDetalhe::where('imovel_id', $imovel->id)->first();
+                if (!$detalhes) {
+                    $detalhes = new ImovelDetalhe();
+                    $detalhes->imovel_id = $imovel->id;
+                }
                 $detalhes->fill($request->detalhes);
-                $detalhes->id = $imovel->id; // Garantir que o ID seja o mesmo do imóvel
                 $detalhes->save();
             }
             

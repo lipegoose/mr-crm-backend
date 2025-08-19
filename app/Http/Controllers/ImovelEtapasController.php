@@ -1129,24 +1129,28 @@ class ImovelEtapasController extends Controller
             $descricaoRequest = new DescricaoRequest();
             $dados = $descricaoRequest->validate($request, $isRascunho);
             
-            // Atualizar imóvel
+            // Atualizar detalhes do imóvel
             DB::beginTransaction();
             
-            // Atualizar campos diretos do imóvel
-            $camposImovel = array_intersect_key($dados, array_flip([
-                'titulo', 'descricao', 'palavras_chave',
-                'gerar_titulo_automatico', 'gerar_descricao_automatica'
-            ]));
+            // Buscar detalhes pelo imovel_id
+            $detalhes = ImovelDetalhe::where('imovel_id', $imovel->id)->first();
             
-            if (!empty($camposImovel)) {
-                // Usar fill para atualizar apenas os campos enviados na requisição
-                $imovel->fill($camposImovel);
-                
-                // Salvar as alterações
-                $imovel->save();
+            if (!$detalhes) {
+                // Se não tiver, criar um novo registro
+                $detalhes = new ImovelDetalhe();
+                $detalhes->imovel_id = $imovel->id;
+                $detalhes->fill($dados);
+                $detalhes->save();
+            } else {
+                // Se já tiver, atualizar o existente
+                $detalhes->fill($dados);
+                $detalhes->save();
             }
             
             DB::commit();
+            
+            // Recarregar o imóvel com o relacionamento detalhes atualizado
+            $imovel->load('detalhes');
             
             return response()->json([
                 'success' => true,
@@ -1810,7 +1814,7 @@ class ImovelEtapasController extends Controller
             // Garantir que o registro de detalhes existe
             $detalhes = $imovel->detalhes;
             if (!$detalhes) {
-                $detalhes = new ImovelDetalhe(['id' => $imovel->id]);
+                $detalhes = new ImovelDetalhe(['imovel_id' => $imovel->id]);
                 $detalhes->save();
                 $imovel->refresh();
             }
