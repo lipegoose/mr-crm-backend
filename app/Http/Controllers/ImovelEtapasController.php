@@ -1224,7 +1224,7 @@ class ImovelEtapasController extends Controller
             
             // Atualizar campos de observações e tour virtual
             $camposDetalhes = array_intersect_key($dados, array_flip([
-                'observacoes_internas', 'tour_virtual'
+                'observacoes_internas', 'tour_virtual_url'
             ]));
             
             if (!empty($camposDetalhes)) {
@@ -1253,43 +1253,19 @@ class ImovelEtapasController extends Controller
                 }
             }
             
-            // Atualizar plantas
+            // Atualizar plantas (replicar a estratégia dos vídeos: sobrescrever lista)
             if (isset($dados['plantas'])) {
-                // Remover plantas existentes que não estão na lista enviada
-                $plantasExistentes = $imovel->plantas->pluck('id')->toArray();
-                $plantasEnviadas = collect($dados['plantas'])->pluck('id')->filter()->toArray();
-                $plantasRemover = array_diff($plantasExistentes, $plantasEnviadas);
-                
-                if (!empty($plantasRemover)) {
-                    $imovel->plantas()->whereIn('id', $plantasRemover)->delete();
-                }
-                
-                // Atualizar ou adicionar plantas
+                // Remover todas as plantas existentes
+                $imovel->plantas()->delete();
+
+                // Adicionar novas plantas
                 if (!empty($dados['plantas'])) {
                     foreach ($dados['plantas'] as $index => $planta) {
-                        if (isset($planta['id']) && $planta['id']) {
-                            // Atualizar planta existente
-                            $plantaModel = $imovel->plantas()->where('id', $planta['id'])->first();
-                            if ($plantaModel) {
-                                // Usar fill para atualizar apenas os campos enviados na requisição
-                                $plantaModel->fill([
-                                    'titulo' => $planta['titulo'] ?? null,
-                                    'descricao' => $planta['descricao'] ?? null,
-                                    'ordem' => $index + 1,
-                                ]);
-                                
-                                // Salvar as alterações
-                                $plantaModel->save();
-                            }
-                        } else if (isset($planta['caminho']) && $planta['caminho']) {
-                            // Adicionar nova planta
-                            $imovel->plantas()->create([
-                                'titulo' => $planta['titulo'] ?? null,
-                                'descricao' => $planta['descricao'] ?? null,
-                                'caminho' => $planta['caminho'],
-                                'ordem' => $index + 1,
-                            ]);
-                        }
+                        $imovel->plantas()->create([
+                            'titulo' => $planta['titulo'] ?? null,
+                            'url' => $planta['url'],
+                            'ordem' => $index + 1,
+                        ]);
                     }
                 }
             }
@@ -1297,7 +1273,7 @@ class ImovelEtapasController extends Controller
             DB::commit();
             
             // Carregar relacionamentos atualizados
-            $imovel->load(['videos', 'plantas']);
+            $imovel->load(['detalhes', 'videos', 'plantas']);
             
             return response()->json([
                 'success' => true,

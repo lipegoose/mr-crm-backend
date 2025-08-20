@@ -20,8 +20,7 @@ class ComplementosResource extends JsonResource
                 return $this->detalhes->observacoes_internas;
             }),
             'tour_virtual_url' => $this->whenLoaded('detalhes', function () {
-                $config = $this->detalhes->config_exibicao ? json_decode($this->detalhes->config_exibicao) : null;
-                return $config && isset($config->tour_virtual_url) ? $config->tour_virtual_url : null;
+                return $this->detalhes->tour_virtual_url;
             }),
             'videos' => $this->whenLoaded('videos', function () {
                 return $this->videos->map(function ($video) {
@@ -41,8 +40,7 @@ class ComplementosResource extends JsonResource
                     return [
                         'id' => $planta->id,
                         'titulo' => $planta->titulo,
-                        'caminho' => $planta->caminho,
-                        'url' => $planta->url_completa,
+                        'url' => $planta->url,
                         'ordem' => $planta->ordem,
                     ];
                 });
