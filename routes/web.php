@@ -12,6 +12,8 @@ Route::get('/', function () {
     ]);
 });
 
+// (removido) Rota pública para servir imagens via controller - substituída por router do PHP embutido no dev
+
 // Rotas de autenticação
 Route::group(['prefix' => 'api/auth'], function () {
     Route::post('login', 'AuthController@login');

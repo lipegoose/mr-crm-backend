@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 class ImovelController extends Controller
 {
@@ -609,25 +610,45 @@ class ImovelController extends Controller
     public function uploadImagem(Request $request, $id)
     {
         try {
-            $request->validate([
+            // Lumen não possui Request::validate; usar Validator::make
+            $validator = Validator::make($request->all(), [
                 'imagem' => 'required|image|max:5120', // 5MB max
                 'titulo' => 'nullable|string|max:255',
                 'principal' => 'nullable|boolean'
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Erro de validação',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
             
             $imovel = Imovel::findOrFail($id);
             
-            // Processar upload da imagem
+            // Processar upload da imagem (sem usar Flysystem)
             if ($request->hasFile('imagem')) {
                 $file = $request->file('imagem');
                 $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('public/imoveis/' . $imovel->id . '/imagens', $filename);
-                
+
+                // Caminho destino em public/imoveis/{id}/imagens (acessível diretamente pelo navegador)
+                // Em Lumen, use app()->basePath('public/...') pois public_path() não está disponível por padrão
+                $destDir = app()->basePath('public/imoveis/' . $imovel->id . '/imagens');
+                if (!is_dir($destDir)) {
+                    mkdir($destDir, 0755, true);
+                }
+
+                // Mover arquivo para o destino final
+                $file->move($destDir, $filename);
+
+                // Caminho relativo público (acessível diretamente via /)
+                $relativePath = 'imoveis/' . $imovel->id . '/imagens/' . $filename;
+
                 // Criar registro da imagem
                 $imagem = new ImovelImagem();
                 $imagem->imovel_id = $imovel->id;
                 $imagem->titulo = $request->titulo ?? $file->getClientOriginalName();
-                $imagem->caminho = str_replace('public/', '', $path);
+                $imagem->caminho = $relativePath;
                 $imagem->principal = $request->has('principal') ? $request->principal : false;
                 
                 // Definir ordem (última + 1)
@@ -668,10 +689,18 @@ class ImovelController extends Controller
     public function reordenarImagens(Request $request, $id)
     {
         try {
-            $request->validate([
+            // Lumen não possui Request::validate; usar Validator::make
+            $validator = Validator::make($request->all(), [
                 'imagens' => 'required|array',
                 'imagens.*' => 'required|integer|exists:imoveis_imagens,id'
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Erro de validação',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
             
             $imovel = Imovel::findOrFail($id);
             
@@ -703,6 +732,61 @@ class ImovelController extends Controller
             return response()->json([
                 'message' => 'Erro ao reordenar imagens',
                 'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Atualiza parcialmente os dados de uma imagem do imóvel (ex.: título).
+     *
+     * @param  int  $id
+     * @param  int  $imagemId
+     * @return \Illuminate\Http\Response
+     */
+    public function atualizarImagem(Request $request, $id, $imagemId)
+    {
+        try {
+            // Validar apenas campos permitidos para atualização granular
+            // Lumen não possui Request::validate; usar Validator::make
+            $validator = Validator::make($request->all(), [
+                'titulo' => 'nullable|string|max:255',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message' => 'Erro de validação',
+                    'errors' => $validator->errors(),
+                ], 422);
+            }
+
+            $imovel = Imovel::findOrFail($id);
+
+            // Garantir que a imagem pertence ao imóvel
+            $imagem = ImovelImagem::where('imovel_id', $imovel->id)
+                ->where('id', $imagemId)
+                ->firstOrFail();
+
+            // Atualizar somente campos enviados
+            $dados = $request->only(['titulo']);
+            foreach ($dados as $campo => $valor) {
+                $imagem->$campo = $valor;
+            }
+
+            $imagem->save();
+
+            return response()->json([
+                'message' => 'Imagem atualizada com sucesso',
+                'imagem' => $imagem,
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Erro de validação',
+                'errors' => $e->errors(),
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erro ao atualizar imagem',
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

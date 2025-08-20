@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 
 class ImovelImagem extends Model
 {
@@ -17,6 +16,13 @@ class ImovelImagem extends Model
      * @var string
      */
     protected $table = 'imoveis_imagens';
+
+    /**
+     * Atributos adicionados ao array/JSON do modelo.
+     *
+     * @var array
+     */
+    protected $appends = ['url'];
 
     /**
      * Atributos que podem ser atribuídos em massa.
@@ -73,8 +79,12 @@ class ImovelImagem extends Model
         
         // Quando uma imagem é excluída, remover o arquivo físico
         static::deleting(function ($imagem) {
-            if ($imagem->caminho && Storage::exists($imagem->caminho)) {
-                Storage::delete($imagem->caminho);
+            if ($imagem->caminho) {
+                // Em Lumen, use app()->basePath('public/...') pois public_path() pode não estar disponível
+                $absolute = app()->basePath('public/' . ltrim($imagem->caminho, '/'));
+                if (file_exists($absolute)) {
+                    @unlink($absolute);
+                }
             }
         });
     }
@@ -113,8 +123,8 @@ class ImovelImagem extends Model
         if (empty($this->caminho)) {
             return null;
         }
-        
-        return url(Storage::url($this->caminho));
+        // Arquivos são salvos em public/{caminho} e acessíveis diretamente
+        return url('/' . ltrim($this->caminho, '/'));
     }
     
     /**

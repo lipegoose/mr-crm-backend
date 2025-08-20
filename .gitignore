@@ -5,6 +5,10 @@ Homestead.yaml
 .env
 .phpunit.result.cache
 
+/public/imoveis
 
 # IDE
 .windsurf
+
+# Dev-only router para php -S (não enviar para produção)
+/public/router.php

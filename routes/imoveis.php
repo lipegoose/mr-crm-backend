@@ -34,6 +34,7 @@ Route::group(['prefix' => 'api', 'middleware' => 'auth:api'], function () {
     // Rotas para gerenciamento de imagens
     Route::post('imoveis/{id}/imagens', 'ImovelController@uploadImagem');
     Route::put('imoveis/{id}/imagens/reordenar', 'ImovelController@reordenarImagens');
+    Route::put('imoveis/{id}/imagens/{imagemId}', 'ImovelController@atualizarImagem');
     Route::put('imoveis/{id}/imagens/{imagemId}/principal', 'ImovelController@definirImagemPrincipal');
     Route::delete('imoveis/{id}/imagens/{imagemId}', 'ImovelController@excluirImagem');
     

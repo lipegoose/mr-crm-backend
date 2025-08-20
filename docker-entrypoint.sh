@@ -41,9 +41,9 @@ if [ ! -f "public/index.php" ]; then
     
     echo "✅ Lumen instalado com sucesso!"
 else
-    echo "✅ Lumen já está instalado"
+    echo " Lumen já está instalado"
 fi
 
 # Iniciar servidor PHP
-echo "🌐 Iniciando servidor PHP..."
-exec php -S 0.0.0.0:8000 -t public public/index.php 
+echo " Iniciando servidor PHP..."
+exec php -S 0.0.0.0:8000 -t public public/router.php
