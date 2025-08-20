@@ -55,3 +55,6 @@ require __DIR__ . '/posicoes_solares.php';
 
 // Incluir rotas de localização (cidades e bairros)
 require __DIR__ . '/localizacao.php';
+
+// Incluir rotas de usuários
+require __DIR__ . '/usuarios.php';

@@ -167,4 +167,25 @@ class AuthController extends Controller
             'user' => Auth::user()
         ]);
     }
+    
+    /**
+     * Lista usuários para uso em campos select.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function listarParaSelect()
+    {
+        $usuarios = User::where('status', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'email'])
+            ->map(function($usuario) {
+                $email = $usuario->email ? " ({$usuario->email})" : "";
+                return [
+                    'value' => $usuario->id,
+                    'label' => $usuario->name . $email
+                ];
+            });
+        
+        return response()->json($usuarios);
+    }
 } 
