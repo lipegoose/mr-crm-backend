@@ -240,8 +240,8 @@ class Imovel extends Model
             default => 'IM'
         };
         
-        // Formato: ID-SIGLA
-        $codigo = "{$id}-{$sigla}";
+        // Formato: SIGLA-ID
+        $codigo = "{$sigla}-{$id}";
         
         // Verificar unicidade
         if ($this->validarUnicidadeCodigoReferencia($codigo)) {
