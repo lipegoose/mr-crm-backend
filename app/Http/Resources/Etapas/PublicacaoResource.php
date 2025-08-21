@@ -34,14 +34,8 @@ class PublicacaoResource extends JsonResource
                 $config = $this->detalhes->config_exibicao ? json_decode($this->detalhes->config_exibicao) : null;
                 return $config && isset($config->redes_sociais) ? $config->redes_sociais : [];
             }),
-            'data_publicacao' => $this->whenLoaded('detalhes', function () {
-                $config = $this->detalhes->config_exibicao ? json_decode($this->detalhes->config_exibicao) : null;
-                return $config && isset($config->data_publicacao) ? $config->data_publicacao : null;
-            }),
-            'data_expiracao' => $this->whenLoaded('detalhes', function () {
-                $config = $this->detalhes->config_exibicao ? json_decode($this->detalhes->config_exibicao) : null;
-                return $config && isset($config->data_expiracao) ? $config->data_expiracao : null;
-            }),
+            'data_publicacao' => $this->data_publicacao ? $this->data_publicacao->format('Y-m-d') : null,
+            'data_expiracao' => $this->data_expiracao ? $this->data_expiracao->format('Y-m-d') : null,
             'status' => $this->status,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
