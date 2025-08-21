@@ -647,9 +647,17 @@ class ImovelController extends Controller
                 // Criar registro da imagem
                 $imagem = new ImovelImagem();
                 $imagem->imovel_id = $imovel->id;
-                $imagem->titulo = $request->titulo ?? $file->getClientOriginalName();
+                // Título: se vier do request, usa-o; senão, usa o nome do arquivo SEM a extensão
+                $tituloBase = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+                $imagem->titulo = ($request->has('titulo') && trim($request->titulo) !== '')
+                    ? trim($request->titulo)
+                    : $tituloBase;
                 $imagem->caminho = $relativePath;
-                $imagem->principal = $request->has('principal') ? $request->principal : false;
+                // Se o imóvel ainda não possui imagens, esta será automaticamente a principal
+                $jaTemImagens = ImovelImagem::where('imovel_id', $imovel->id)->exists();
+                $imagem->principal = $jaTemImagens
+                    ? ($request->has('principal') ? (bool)$request->principal : false)
+                    : true;
                 
                 // Definir ordem (última + 1)
                 $ultimaOrdem = ImovelImagem::where('imovel_id', $imovel->id)->max('ordem') ?? 0;
