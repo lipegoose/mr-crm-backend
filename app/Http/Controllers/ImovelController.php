@@ -32,7 +32,13 @@ class ImovelController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = Imovel::query();
+            // Carregar somente a imagem principal para cada imóvel para a grade
+            $query = Imovel::with([
+                'imagens' => function ($q) {
+                    $q->where('principal', true)
+                      ->orderBy('ordem', 'asc');
+                }
+            ]);
             
             // Aplicar filtros
             if ($request->has('status')) {
