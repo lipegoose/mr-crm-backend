@@ -47,15 +47,18 @@ class ImovelResource extends JsonResource
                 'vagas' => $this->vagas,
             ],
             'valores' => [
-                'valor_venda' => $this->valor_venda,
-                'valor_locacao' => $this->valor_locacao,
-                'valor_condominio' => $this->valor_condominio,
-                'valor_iptu' => $this->valor_iptu,
-                'mostrar_valores_site' => (bool) $this->mostrar_valores_site,
-                'valor_venda_formatado' => $this->valor_venda ? 'R$ ' . number_format($this->valor_venda, 2, ',', '.') : null,
-                'valor_locacao_formatado' => $this->valor_locacao ? 'R$ ' . number_format($this->valor_locacao, 2, ',', '.') : null,
-                'valor_condominio_formatado' => $this->valor_condominio ? 'R$ ' . number_format($this->valor_condominio, 2, ',', '.') : null,
-                'valor_iptu_formatado' => $this->valor_iptu ? 'R$ ' . number_format($this->valor_iptu, 2, ',', '.') : null,
+                // Mantém as mesmas chaves na resposta para compatibilidade,
+                // mas lê dos campos atuais do modelo (preco_*)
+                'valor_venda' => $this->preco_venda,
+                'valor_locacao' => $this->preco_aluguel,
+                'valor_condominio' => $this->preco_condominio,
+                'valor_iptu' => $this->preco_iptu,
+                // No modelo atual o flag é 'mostrar_preco'; manter a chave antiga na resposta
+                'mostrar_valores_site' => (bool) $this->mostrar_preco,
+                'valor_venda_formatado' => $this->preco_venda ? 'R$ ' . number_format($this->preco_venda, 2, ',', '.') : null,
+                'valor_locacao_formatado' => $this->preco_aluguel ? 'R$ ' . number_format($this->preco_aluguel, 2, ',', '.') : null,
+                'valor_condominio_formatado' => $this->preco_condominio ? 'R$ ' . number_format($this->preco_condominio, 2, ',', '.') : null,
+                'valor_iptu_formatado' => $this->preco_iptu ? 'R$ ' . number_format($this->preco_iptu, 2, ',', '.') : null,
             ],
             'publicacao' => [
                 'publicar_site' => (bool) $this->publicar_site,
