@@ -1307,7 +1307,9 @@ class ImovelEtapasController extends Controller
     {
         try {
             $imovel = $this->verificarImovel($id);
-            $imovel->load('imagens');
+            $imovel->load(['imagens' => function ($query) {
+                $query->orderBy('ordem', 'asc');
+            }]);
             
             return response()->json([
                 'success' => true,

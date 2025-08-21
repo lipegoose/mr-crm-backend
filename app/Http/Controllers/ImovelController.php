@@ -838,18 +838,37 @@ class ImovelController extends Controller
     public function excluirImagem($id, $imagemId)
     {
         try {
+            DB::beginTransaction();
+
             $imovel = Imovel::findOrFail($id);
             $imagem = ImovelImagem::where('imovel_id', $imovel->id)
                 ->where('id', $imagemId)
                 ->firstOrFail();
-            
+
+            $eraPrincipal = (bool) $imagem->principal;
+
             // Excluir imagem (o evento deleting no modelo ImovelImagem cuidará de excluir o arquivo físico)
             $imagem->delete();
-            
+
+            // Se a imagem excluída era a principal, promover a próxima pela ordem
+            if ($eraPrincipal) {
+                $proxima = ImovelImagem::where('imovel_id', $imovel->id)
+                    ->orderBy('ordem', 'asc')
+                    ->first();
+
+                if ($proxima) {
+                    // Método já desmarca as demais via evento saved
+                    $proxima->definirComoPrincipal();
+                }
+            }
+
+            DB::commit();
+
             return response()->json([
                 'message' => 'Imagem excluída com sucesso'
             ]);
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'message' => 'Erro ao excluir imagem',
                 'error' => $e->getMessage()
