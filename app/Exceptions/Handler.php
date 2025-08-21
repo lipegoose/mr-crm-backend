@@ -49,6 +49,14 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
+        // Converter validações para resposta JSON 422 padronizada
+        if ($exception instanceof ValidationException) {
+            return response()->json([
+                'message' => 'Erro de validação',
+                'errors' => method_exists($exception, 'errors') ? $exception->errors() : [],
+            ], 422);
+        }
+
         return parent::render($request, $exception);
     }
 }

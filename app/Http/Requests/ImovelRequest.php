@@ -112,25 +112,8 @@ class ImovelRequest extends FormRequest
             'detalhes.config_exibicao' => 'nullable|json',
         ];
         
-        // Se não for rascunho e estiver tentando ativar, aplicar regras mais rígidas
-        if (!$isRascunho && $this->input('status') === 'ATIVO') {
-            $rules = array_merge($rules, [
-                'tipo' => 'required|string|in:APARTAMENTO,CASA,COMERCIAL,TERRENO,RURAL,INDUSTRIAL',
-                'subtipo' => 'required|string|max:50',
-                'perfil' => 'required|string|exists:perfis,value',
-                'proprietario_id' => 'required|integer|exists:clientes,id',
-                'corretor_id' => 'required|integer|exists:users,id',
-                'area_total' => 'required|numeric|min:0',
-                'quartos' => 'required|integer|min:0',
-                'banheiros' => 'required|integer|min:0',
-                'cep' => 'required|string|max:10',
-                'uf' => 'required|string|size:2',
-                'cidade' => 'required|string|max:100',
-                'bairro' => 'required|string|max:100',
-                // Os campos cidade_id e bairro_id permanecem opcionais mesmo para imóveis ativos
-                'logradouro' => 'required|string|max:200',
-            ]);
-        }
+        // Observação: A verificação de campos obrigatórios para ativação (status=ATIVO)
+        // é feita no controller com base no estado atual do imóvel no BD, não no payload.
         
         // Regras específicas por tipo de imóvel
         if ($this->input('tipo')) {

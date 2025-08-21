@@ -437,9 +437,12 @@ class ImovelController extends Controller
                 ]);
                 
                 if ($validator->fails()) {
+                    $errors = $validator->errors();
+                    $missing = array_keys($errors->toArray());
                     return response()->json([
                         'message' => 'Não é possível ativar o imóvel. Campos obrigatórios não preenchidos.',
-                        'errors' => $validator->errors()
+                        'missing_required_fields' => $missing,
+                        'errors' => $errors,
                     ], 422);
                 }
             }
