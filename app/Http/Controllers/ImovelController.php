@@ -81,8 +81,10 @@ class ImovelController extends Controller
             }
             
             // Filtros de características físicas
-            if ($request->has('quartos_min')) {
-                $query->where('quartos', '>=', $request->quartos_min);
+            if ($request->has('dormitorios_min')) {
+                $query->where('dormitorios', '>=', $request->dormitorios_min);
+            } elseif ($request->has('quartos_min')) { // compat legada
+                $query->where('dormitorios', '>=', $request->quartos_min);
             }
             
             if ($request->has('banheiros_min')) {
@@ -281,7 +283,7 @@ class ImovelController extends Controller
             // Copiar atributos básicos do imóvel
             $atributosParaCopiar = [
                 'tipo', 'subtipo', 'perfil', 'situacao', 'tipo_negocio',
-                'quartos', 'suites', 'banheiros', 'vagas',
+                'dormitorios', 'suites', 'banheiros', 'vagas',
                 'area_total', 'area_privativa', 'area_terreno', 'unidade_medida',
                 'andar', 'total_andares', 'unidades_andar', 'unidades_predio',
                 'ano_construcao', 'incorporadora', 'construtora',
@@ -427,7 +429,7 @@ class ImovelController extends Controller
                     'proprietario_id' => 'required',
                     'corretor_id' => 'required',
                     'area_total' => 'required',
-                    'quartos' => 'required',
+                    'dormitorios' => 'required',
                     'banheiros' => 'required',
                     'cep' => 'required',
                     'uf' => 'required',

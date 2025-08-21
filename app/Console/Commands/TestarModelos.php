@@ -80,7 +80,7 @@ class TestarModelos extends Command
             $imovel->fill([
                 'area_total' => 120.00,
                 'area_privativa' => 100.00,
-                'quartos' => 3,
+                'dormitorios' => 3,
                 'banheiros' => 2,
                 'suites' => 1,
                 'vagas' => 2,

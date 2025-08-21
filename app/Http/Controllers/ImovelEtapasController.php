@@ -93,7 +93,7 @@ class ImovelEtapasController extends Controller
         $etapas['informacoes'] = !empty($imovel->tipo) && !empty($imovel->subtipo) && !empty($imovel->tipo_negocio);
         
         // Verificar etapa Cômodos
-        $etapas['comodos'] = $imovel->quartos !== null;
+        $etapas['comodos'] = $imovel->dormitorios !== null;
         
         // Verificar etapa Medidas
         $etapas['medidas'] = !empty($imovel->area_total) && !empty($imovel->unidade_medida);

@@ -41,7 +41,7 @@ class ImovelResource extends JsonResource
             'caracteristicas_fisicas' => [
                 'area_total' => $this->area_total,
                 'area_privativa' => $this->area_privativa,
-                'quartos' => $this->quartos,
+                'dormitorios' => $this->dormitorios,
                 'banheiros' => $this->banheiros,
                 'suites' => $this->suites,
                 'vagas' => $this->vagas,
