@@ -41,6 +41,8 @@ class Cliente extends Model
         'complemento',
         'observacoes',
         'status',
+        'categoria',
+        'origem_captacao',
         'created_by',
         'updated_by',
     ];

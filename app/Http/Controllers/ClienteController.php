@@ -13,9 +13,10 @@ class ClienteController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $clientes = Cliente::orderBy('nome')->paginate(15);
+        $perPage = (int) $request->get('per_page', 15);
+        $clientes = Cliente::orderBy('created_at', 'desc')->paginate($perPage);
         return response()->json($clientes);
     }
 
@@ -29,12 +30,14 @@ class ClienteController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'nome' => 'required|string|max:255',
-            'tipo' => 'required|string|in:PESSOA_FISICA,PESSOA_JURIDICA',
-            'cpf_cnpj' => 'required|string|max:20|unique:clientes',
+            'tipo' => 'nullable|string|in:PESSOA_FISICA,PESSOA_JURIDICA',
+            'cpf_cnpj' => 'nullable|string|max:20|unique:clientes,cpf_cnpj',
             'email' => 'nullable|email|max:255',
             'telefone' => 'nullable|string|max:20',
             'celular' => 'nullable|string|max:20',
-            'status' => 'required|string|in:ATIVO,INATIVO',
+            'status' => 'nullable|string|in:ATIVO,INATIVO',
+            'categoria' => 'nullable|string|in:cliente,prospecto,lead',
+            'origem_captacao' => 'nullable|string|in:site,indicacao,redes_sociais,anuncio,outro',
         ]);
 
         if ($validator->fails()) {
@@ -69,13 +72,15 @@ class ClienteController extends Controller
         $cliente = Cliente::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'nome' => 'required|string|max:255',
-            'tipo' => 'required|string|in:PESSOA_FISICA,PESSOA_JURIDICA',
-            'cpf_cnpj' => 'required|string|max:20|unique:clientes,cpf_cnpj,'.$id,
+            'nome' => 'nullable|string|max:255',
+            'tipo' => 'nullable|string|in:PESSOA_FISICA,PESSOA_JURIDICA',
+            'cpf_cnpj' => 'nullable|string|max:20|unique:clientes,cpf_cnpj,'.$id,
             'email' => 'nullable|email|max:255',
             'telefone' => 'nullable|string|max:20',
             'celular' => 'nullable|string|max:20',
-            'status' => 'required|string|in:ATIVO,INATIVO',
+            'status' => 'nullable|string|in:ATIVO,INATIVO',
+            'categoria' => 'nullable|string|in:cliente,prospecto,lead',
+            'origem_captacao' => 'nullable|string|in:site,indicacao,redes_sociais,anuncio,outro',
         ]);
 
         if ($validator->fails()) {
@@ -125,7 +130,8 @@ class ClienteController extends Controller
             $query->where('status', $request->status);
         }
 
-        return response()->json($query->orderBy('nome')->paginate(15));
+        $perPage = (int) $request->get('per_page', 15);
+        return response()->json($query->orderBy('created_at', 'desc')->paginate($perPage));
     }
 
     /**
