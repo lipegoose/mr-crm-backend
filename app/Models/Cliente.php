@@ -62,8 +62,9 @@ class Cliente extends Model
      * @var array
      */
     protected $casts = [
-        'data_nascimento' => 'date',
-        'data_fundacao' => 'date',
+        // Formatação de datas no JSON
+        'data_nascimento' => 'date:Y-m-d',
+        'data_fundacao' => 'date:Y-m-d',
         'renda_mensal' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
