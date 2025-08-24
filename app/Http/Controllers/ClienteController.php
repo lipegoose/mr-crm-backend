@@ -32,12 +32,22 @@ class ClienteController extends Controller
             'nome' => 'required|string|max:255',
             'tipo' => 'nullable|string|in:PESSOA_FISICA,PESSOA_JURIDICA',
             'cpf_cnpj' => 'nullable|string|max:20|unique:clientes,cpf_cnpj',
+            'rg_ie' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'telefone' => 'nullable|string|max:20',
             'celular' => 'nullable|string|max:20',
             'status' => 'nullable|string|in:ATIVO,INATIVO',
             'categoria' => 'nullable|string|in:cliente,prospecto,lead',
             'origem_captacao' => 'nullable|string|in:site,indicacao,redes_sociais,anuncio,outro',
+            // Novos campos PF/PJ
+            'data_nascimento' => 'nullable|date_format:Y-m-d',
+            'profissao' => 'nullable|string|max:100',
+            'estado_civil' => 'nullable|string|in:solteiro,casado,divorciado,viuvo,uniao_estavel',
+            'renda_mensal' => 'nullable|numeric',
+            'razao_social' => 'nullable|string|max:150',
+            'nome_fantasia' => 'nullable|string|max:150',
+            'data_fundacao' => 'nullable|date_format:Y-m-d',
+            'ramo_atividade' => 'nullable|string|max:150',
         ]);
 
         if ($validator->fails()) {
@@ -75,12 +85,22 @@ class ClienteController extends Controller
             'nome' => 'nullable|string|max:255',
             'tipo' => 'nullable|string|in:PESSOA_FISICA,PESSOA_JURIDICA',
             'cpf_cnpj' => 'nullable|string|max:20|unique:clientes,cpf_cnpj,'.$id,
+            'rg_ie' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'telefone' => 'nullable|string|max:20',
             'celular' => 'nullable|string|max:20',
             'status' => 'nullable|string|in:ATIVO,INATIVO',
             'categoria' => 'nullable|string|in:cliente,prospecto,lead',
             'origem_captacao' => 'nullable|string|in:site,indicacao,redes_sociais,anuncio,outro',
+            // Novos campos PF/PJ
+            'data_nascimento' => 'nullable|date_format:Y-m-d',
+            'profissao' => 'nullable|string|max:100',
+            'estado_civil' => 'nullable|string|in:solteiro,casado,divorciado,viuvo,uniao_estavel',
+            'renda_mensal' => 'nullable|numeric',
+            'razao_social' => 'nullable|string|max:150',
+            'nome_fantasia' => 'nullable|string|max:150',
+            'data_fundacao' => 'nullable|date_format:Y-m-d',
+            'ramo_atividade' => 'nullable|string|max:150',
         ]);
 
         if ($validator->fails()) {

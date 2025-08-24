@@ -43,6 +43,15 @@ class Cliente extends Model
         'status',
         'categoria',
         'origem_captacao',
+        // Novos campos PF/PJ
+        'data_nascimento',
+        'profissao',
+        'estado_civil',
+        'renda_mensal',
+        'razao_social',
+        'nome_fantasia',
+        'data_fundacao',
+        'ramo_atividade',
         'created_by',
         'updated_by',
     ];
@@ -53,6 +62,9 @@ class Cliente extends Model
      * @var array
      */
     protected $casts = [
+        'data_nascimento' => 'date',
+        'data_fundacao' => 'date',
+        'renda_mensal' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime',
