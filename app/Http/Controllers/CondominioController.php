@@ -74,7 +74,7 @@ class CondominioController extends Controller
         $condominio = Condominio::findOrFail($id);
 
         $validator = Validator::make($request->all(), [
-            'nome' => 'required|string|max:255',
+            'nome' => 'sometimes|required|string|max:255',
             'descricao' => 'nullable|string',
             'cep' => 'nullable|string|max:10',
             'uf' => 'nullable|string|max:2',
