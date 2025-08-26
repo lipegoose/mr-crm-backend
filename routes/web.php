@@ -46,6 +46,12 @@ require __DIR__ . '/clientes.php';
 // Incluir rotas de condomínios
 require __DIR__ . '/condominios.php';
 
+// Incluir rotas de características
+require __DIR__ . '/caracteristicas.php';
+
+// Incluir rotas de proximidades
+require __DIR__ . '/proximidades.php';
+
 // Incluir rotas de perfis
 require __DIR__ . '/perfis.php';
 
