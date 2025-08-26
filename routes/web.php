@@ -66,3 +66,6 @@ require __DIR__ . '/localizacao.php';
 
 // Incluir rotas de usuários
 require __DIR__ . '/usuarios.php';
+
+// Incluir rotas do CMS de Seções
+require __DIR__ . '/sections.php';
