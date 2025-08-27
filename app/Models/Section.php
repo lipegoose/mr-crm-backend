@@ -8,7 +8,7 @@ class Section extends Model
 {
     protected $fillable = [
         'slug', 'titulo', 'subtitulo', 'descricao', 'url_link', 'texto_url', 'botao',
-        'url_amigavel', 'template', 'show_on_home', 'ordem', 'ativo', 'published_at'
+        'template', 'show_on_home', 'ordem', 'ativo', 'published_at'
     ];
 
     protected $casts = [

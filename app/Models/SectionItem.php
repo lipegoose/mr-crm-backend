@@ -8,11 +8,12 @@ class SectionItem extends Model
 {
     protected $fillable = [
         'section_id', 'titulo', 'subtitulo', 'descricao', 'url_link', 'texto_url', 'botao',
-        'url_amigavel', 'ordem', 'ativo'
+        'slug', 'show_on_home', 'ordem', 'ativo'
     ];
 
     protected $casts = [
         'botao' => 'boolean',
+        'show_on_home' => 'boolean',
         'ativo' => 'boolean',
         'ordem' => 'integer',
     ];

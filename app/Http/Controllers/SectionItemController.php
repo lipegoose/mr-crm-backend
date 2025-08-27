@@ -24,10 +24,12 @@ class SectionItemController extends Controller
             'titulo' => 'required|string|max:255',
             'subtitulo' => 'sometimes|nullable|string|max:255',
             'descricao' => 'sometimes|nullable|string',
-            'url_link' => 'sometimes|nullable|url',
+            'url_link' => 'sometimes|nullable|string|max:500',
             'texto_url' => 'sometimes|nullable|string|max:255',
             'botao' => 'sometimes|boolean',
-            'url_amigavel' => 'sometimes|nullable|string|max:255',
+            // slug único por seção
+            'slug' => 'sometimes|nullable|string|max:255|unique:section_items,slug,NULL,id,section_id,' . $section->id,
+            'show_on_home' => 'sometimes|boolean',
             'ordem' => 'sometimes|integer',
             'ativo' => 'sometimes|boolean',
         ]);
@@ -57,10 +59,12 @@ class SectionItemController extends Controller
             'titulo' => 'sometimes|string|max:255',
             'subtitulo' => 'sometimes|nullable|string|max:255',
             'descricao' => 'sometimes|nullable|string',
-            'url_link' => 'sometimes|nullable|url',
+            'url_link' => 'sometimes|nullable|string|max:500',
             'texto_url' => 'sometimes|nullable|string|max:255',
             'botao' => 'sometimes|boolean',
-            'url_amigavel' => 'sometimes|nullable|string|max:255',
+            // slug único por seção, ignorando o próprio item
+            'slug' => 'sometimes|nullable|string|max:255|unique:section_items,slug,' . $item->id . ',id,section_id,' . $sectionId,
+            'show_on_home' => 'sometimes|boolean',
             'ordem' => 'sometimes|integer',
             'ativo' => 'sometimes|boolean',
         ]);

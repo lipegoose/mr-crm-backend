@@ -19,7 +19,6 @@ return new class extends Migration {
             $table->string('url_link', 500)->nullable()->comment('Pode ser âncora (#destaques) ou URL absoluta');
             $table->string('texto_url', 255)->nullable();
             $table->boolean('botao')->default(false);
-            $table->string('url_amigavel', 255)->nullable()->unique()->comment('Slug editável amigável para SEO');
             $table->enum('template', ['destaques', 'sobre', 'servicos', 'blog'])->comment('Template de renderização no site público');
             $table->boolean('show_on_home')->default(false);
             $table->integer('ordem')->default(0);

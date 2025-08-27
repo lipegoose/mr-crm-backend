@@ -18,8 +18,7 @@ class SectionController extends Controller
                 $qq->where('titulo', 'like', "%$q%")
                    ->orWhere('subtitulo', 'like', "%$q%")
                    ->orWhere('descricao', 'like', "%$q%")
-                   ->orWhere('slug', 'like', "%$q%")
-                   ->orWhere('url_amigavel', 'like', "%$q%");
+                   ->orWhere('slug', 'like', "%$q%");
             });
         }
 
@@ -52,7 +51,6 @@ class SectionController extends Controller
             'url_link' => 'sometimes|nullable|string|max:500',
             'texto_url' => 'sometimes|nullable|string|max:255',
             'botao' => 'sometimes|boolean',
-            'url_amigavel' => 'sometimes|nullable|string|max:255|unique:sections,url_amigavel',
             'template' => 'required|in:destaques,sobre,servicos,blog',
             'show_on_home' => 'sometimes|boolean',
             'ordem' => 'sometimes|integer',
@@ -86,7 +84,6 @@ class SectionController extends Controller
             'url_link' => 'sometimes|nullable|string|max:500',
             'texto_url' => 'sometimes|nullable|string|max:255',
             'botao' => 'sometimes|boolean',
-            'url_amigavel' => 'sometimes|nullable|string|max:255|unique:sections,url_amigavel,' . $section->id,
             'template' => 'sometimes|in:destaques,sobre,servicos,blog',
             'show_on_home' => 'sometimes|boolean',
             'ordem' => 'sometimes|integer',
