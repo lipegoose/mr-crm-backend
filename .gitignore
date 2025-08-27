@@ -6,6 +6,10 @@ Homestead.yaml
 .phpunit.result.cache
 
 /public/imoveis
+/public/sections
+/public/section_items
+/public/section_photos
+/public/section_item_photos
 
 # IDE
 .windsurf

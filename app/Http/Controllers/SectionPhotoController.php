@@ -21,6 +21,7 @@ class SectionPhotoController extends Controller
     {
         $section = Section::findOrFail($sectionId);
 
+        // Validação dos arquivos de imagem (padrão Mr.CRM)
         $validator = Validator::make($request->all(), [
             'files' => 'required|array',
             'files.*' => 'required|image|mimes:jpg,jpeg,png,webp|max:5120',
@@ -38,6 +39,7 @@ class SectionPhotoController extends Controller
                 break; // respeitar limite
             }
 
+            // Geração do nome físico do arquivo com UUID, mantendo extensão original
             $filename = Str::uuid() . '.' . $file->getClientOriginalExtension();
             $destDir = app()->basePath('public/sections/' . $section->id . '/fotos');
             if (!is_dir($destDir)) {
@@ -46,12 +48,20 @@ class SectionPhotoController extends Controller
             $file->move($destDir, $filename);
             $relativePath = 'sections/' . $section->id . '/fotos/' . $filename;
 
+            // Define ordem incremental baseada na última imagem da seção
             $lastOrder = SectionPhoto::where('section_id', $section->id)->max('ordem') ?? 0;
 
             $photo = new SectionPhoto();
             $photo->section_id = $section->id;
-            $photo->path = $relativePath;
+            $photo->caminho = $relativePath;
             $photo->ordem = $lastOrder + 1;
+            
+            // Título: se vier do request, usa-o; senão, usa o nome do arquivo SEM a extensão (padrão Mr.CRM)
+            $tituloBase = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+            $photo->titulo = ($request->has('titulo') && trim($request->input('titulo')) !== '')
+                ? trim($request->input('titulo'))
+                : $tituloBase;
+
             // Se for a primeira foto da seção, marcar como principal
             $hasAny = SectionPhoto::where('section_id', $section->id)->exists();
             $photo->principal = $hasAny ? false : true;
@@ -69,7 +79,7 @@ class SectionPhotoController extends Controller
 
         $validator = Validator::make($request->all(), [
             'principal' => 'sometimes|boolean',
-            'alt_text' => 'sometimes|nullable|string|max:255',
+            'titulo' => 'sometimes|nullable|string|max:255',
             'ordem' => 'sometimes|integer',
         ]);
         if ($validator->fails()) {

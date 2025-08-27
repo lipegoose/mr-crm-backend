@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class SectionPhoto extends Model
 {
     protected $fillable = [
-        'section_id', 'path', 'principal', 'ordem', 'alt_text'
+        'section_id', 'caminho', 'principal', 'ordem', 'titulo'
     ];
 
     protected $casts = [
@@ -28,8 +28,8 @@ class SectionPhoto extends Model
         });
 
         static::deleting(function ($photo) {
-            if ($photo->path) {
-                $absolute = app()->basePath('public/' . ltrim($photo->path, '/'));
+            if ($photo->caminho) {
+                $absolute = app()->basePath('public/' . ltrim($photo->caminho, '/'));
                 if (file_exists($absolute)) {
                     @unlink($absolute);
                 }
@@ -44,6 +44,6 @@ class SectionPhoto extends Model
 
     public function getUrlAttribute()
     {
-        return $this->path ? url('/' . ltrim($this->path, '/')) : null;
+        return $this->caminho ? url('/' . ltrim($this->caminho, '/')) : null;
     }
 }
