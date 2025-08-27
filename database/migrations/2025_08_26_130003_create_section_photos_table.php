@@ -10,12 +10,17 @@ return new class extends Migration {
         Schema::create('section_photos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('section_id')->constrained('sections')->cascadeOnDelete();
-            $table->string('path', 500)->comment('Caminho relativo público (ex.: sections/{sectionId}/fotos/<uuid>.jpg)');
-            $table->boolean('principal')->default(false)->comment('Se true, deve ser única por seção');
-            $table->integer('ordem')->default(0);
-            $table->string('alt_text', 255)->nullable();
+            $table->string('titulo', 255)->nullable();
+            $table->string('caminho', 255)->comment('Caminho relativo para o arquivo da imagem');
+            $table->unsignedInteger('ordem')->default(0)->comment('Ordem de exibição da imagem');
+            $table->boolean('principal')->default(false)->comment('Indica se é a imagem principal da seção');
             $table->timestamps();
+            $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
 
+            // Índices
+            $table->index('section_id');
+            $table->index(['section_id', 'principal']);
             $table->index(['section_id', 'ordem']);
         });
     }
