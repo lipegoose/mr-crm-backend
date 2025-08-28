@@ -23,6 +23,11 @@ Route::group(['prefix' => 'api/cms/sections', 'middleware' => 'auth:api'], funct
     Route::put('{sectionId:[0-9]+}', 'SectionController@update');
     Route::delete('{sectionId:[0-9]+}', 'SectionController@destroy');
 
+    // Vincular keywords diretamente na Seção
+    Route::get('{sectionId:[0-9]+}/keywords', 'SectionKeywordController@index');
+    Route::post('{sectionId:[0-9]+}/keywords', 'SectionKeywordController@attach');
+    Route::delete('{sectionId:[0-9]+}/keywords/{keywordId:[0-9]+}', 'SectionKeywordController@detach');
+
     // Fotos da Seção
     Route::get('{sectionId:[0-9]+}/photos', 'SectionPhotoController@index');
     Route::post('{sectionId:[0-9]+}/photos', 'SectionPhotoController@upload');
